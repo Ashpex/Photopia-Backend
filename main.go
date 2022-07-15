@@ -25,5 +25,8 @@ func main() {
 		authRoutes.POST("/register", authController.Register)
 	}
 
-	r.Run()
+	err := r.Run()
+	if err != nil {
+		return
+	}
 }

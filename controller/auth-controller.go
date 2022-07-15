@@ -7,8 +7,10 @@ import (
 	"example.com/gallery/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
+//AuthController interface is a contract what this controller can do
 type AuthController interface {
 	Login(ctx *gin.Context)
 	Register(ctx *gin.Context)
@@ -19,7 +21,7 @@ type authController struct {
 	jwtService  service.JWTService
 }
 
-// NewAuthController creates a new instance of AuthController
+//NewAuthController creates a new instance of AuthController
 func NewAuthController(authService service.AuthService, jwtService service.JWTService) AuthController {
 	return &authController{
 		authService: authService,
@@ -27,7 +29,7 @@ func NewAuthController(authService service.AuthService, jwtService service.JWTSe
 	}
 }
 
-func (ac *authController) Login(ctx *gin.Context) {
+func (c *authController) Login(ctx *gin.Context) {
 	var loginDTO dto.LoginDTO
 	errDTO := ctx.ShouldBind(&loginDTO)
 	if errDTO != nil {
@@ -35,19 +37,19 @@ func (ac *authController) Login(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	authResult := ac.authService.VerifyCredential(loginDTO.Email, loginDTO.Password)
+	authResult := c.authService.VerifyCredential(loginDTO.Email, loginDTO.Password)
 	if v, ok := authResult.(entity.User); ok {
-		generatedToken, _ := ac.jwtService.GenerateToken(v.ID)
+		generatedToken := c.jwtService.GenerateToken(strconv.FormatUint(v.ID, 10))
 		v.Token = generatedToken
-		response := helper.BuildResponse(true, "Login successful", helper.EmptyObj{})
+		response := helper.BuildResponse(true, "OK!", v)
 		ctx.JSON(http.StatusOK, response)
-	} else {
-		response := helper.BuildErrorResponse("Failed to process request", "Invalid username or password", helper.EmptyObj{})
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+		return
 	}
+	response := helper.BuildErrorResponse("Please check again your credential", "Invalid Credential", helper.EmptyObj{})
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
 }
 
-func (ac *authController) Register(ctx *gin.Context) {
+func (c *authController) Register(ctx *gin.Context) {
 	var registerDTO dto.RegisterDTO
 	errDTO := ctx.ShouldBind(&registerDTO)
 	if errDTO != nil {
@@ -55,14 +57,15 @@ func (ac *authController) Register(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	if !ac.authService.IsDuplicateEmail(registerDTO.Email) {
-		response := helper.BuildErrorResponse("Failed to process request", "Email already exists", helper.EmptyObj{})
+
+	if !c.authService.IsDuplicateEmail(registerDTO.Email) {
+		response := helper.BuildErrorResponse("Failed to process request", "Duplicate email", helper.EmptyObj{})
 		ctx.JSON(http.StatusConflict, response)
 	} else {
-		createdUser := ac.authService.CreateUser(registerDTO)
-		token, _ := ac.jwtService.GenerateToken(createdUser.ID)
+		createdUser := c.authService.CreateUser(registerDTO)
+		token := c.jwtService.GenerateToken(strconv.FormatUint(createdUser.ID, 10))
 		createdUser.Token = token
-		response := helper.BuildResponse(true, "Registration successful", createdUser)
+		response := helper.BuildResponse(true, "OK!", createdUser)
 		ctx.JSON(http.StatusCreated, response)
 	}
 }
