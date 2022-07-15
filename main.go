@@ -14,6 +14,7 @@ var (
 	// db is a global variable that represents the database connection
 	db             *gorm.DB                  = database.SetupDB()
 	userRepository repository.UserRepository = repository.NewUserRepository(db)
+	postRepository repository.PostRepository = repository.NewPostRepository(db)
 	// jwtService is a global variable that represents the jwt service (json web token)
 	jwtService service.JWTService = service.NewJWTService()
 	// Authentication service and controller
@@ -22,6 +23,10 @@ var (
 	// User service and controller
 	userService    service.UserService       = service.NewUserService(userRepository)
 	userController controller.UserController = controller.NewUserController(userService, jwtService)
+
+	// Post service and controller
+	postService    service.PostService       = service.NewPostService(postRepository)
+	postController controller.PostController = controller.NewPostController(postService, jwtService)
 )
 
 func main() {
@@ -36,6 +41,15 @@ func main() {
 	{
 		userRoutes.GET("/profile", userController.Profile)
 		userRoutes.PUT("/profile", userController.Update)
+	}
+
+	postRoutes := r.Group("api/post")
+	{
+		postRoutes.GET("/", postController.All)
+		postRoutes.GET("/:id", postController.FindByID)
+		postRoutes.POST("/", postController.Insert, middleware.AuthorizeJWT(jwtService))
+		postRoutes.PUT("/:id", postController.Update, middleware.AuthorizeJWT(jwtService))
+		postRoutes.DELETE("/:id", postController.Delete, middleware.AuthorizeJWT(jwtService))
 	}
 
 	err := r.Run()
