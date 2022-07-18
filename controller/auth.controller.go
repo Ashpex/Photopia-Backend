@@ -11,6 +11,7 @@ import (
 )
 
 //AuthController interface is a contract what this controller can do
+//AuthController interface is a contract what this controller can do
 type AuthController interface {
 	Login(ctx *gin.Context)
 	Register(ctx *gin.Context)

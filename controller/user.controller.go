@@ -22,7 +22,7 @@ type userController struct {
 	jwtService  service.JWTService
 }
 
-// NewUserController is a function to create a new instance of userController
+//NewUserController is creating anew instance of UserControlller
 func NewUserController(userService service.UserService, jwtService service.JWTService) UserController {
 	return &userController{
 		userService: userService,
@@ -31,34 +31,27 @@ func NewUserController(userService service.UserService, jwtService service.JWTSe
 }
 
 func (uc *userController) Update(context *gin.Context) {
-	userUpdateDTO := dto.UserUpdateDTO{}
+	var userUpdateDTO dto.UserUpdateDTO
 	errDTO := context.ShouldBind(&userUpdateDTO)
 	if errDTO != nil {
 		response := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
+
 	authHeader := context.GetHeader("Authorization")
 	token, errToken := uc.jwtService.ValidateToken(authHeader)
 	if errToken != nil {
-		response := helper.BuildErrorResponse("Failed to process request", errToken.Error(), helper.EmptyObj{})
-		context.AbortWithStatusJSON(http.StatusUnauthorized, response)
 		panic(errToken.Error())
-		return
 	}
-
 	claims := token.Claims.(jwt.MapClaims)
-	userID, errID := strconv.ParseUint(fmt.Sprintf("%v", claims["user_id"]), 10, 64)
-	if errID != nil {
-		response := helper.BuildErrorResponse("Failed to process request", errID.Error(), helper.EmptyObj{})
-		context.AbortWithStatusJSON(http.StatusBadRequest, response)
-		panic(errID.Error())
-		return
+	id, err := strconv.ParseUint(fmt.Sprintf("%v", claims["user_id"]), 10, 64)
+	if err != nil {
+		panic(err.Error())
 	}
-	userUpdateDTO.ID = userID
-
+	userUpdateDTO.ID = id
 	u := uc.userService.Update(userUpdateDTO)
-	response := helper.BuildResponse(true, "Successfully updated user", u)
+	response := helper.BuildResponse(true, "OK!", u)
 	context.JSON(http.StatusOK, response)
 }
 
@@ -69,8 +62,9 @@ func (uc *userController) Profile(context *gin.Context) {
 		panic(err.Error())
 	}
 	claims := token.Claims.(jwt.MapClaims)
-	userID := fmt.Sprintf("%v", claims["user_id"])
-	user := uc.userService.Profile(userID)
-	response := helper.BuildResponse(true, "Successfully retrieved user", user)
+	id := fmt.Sprintf("%v", claims["user_id"])
+	user := uc.userService.Profile(id)
+	response := helper.BuildResponse(true, "Get profile user successfully", user)
 	context.JSON(http.StatusOK, response)
+
 }

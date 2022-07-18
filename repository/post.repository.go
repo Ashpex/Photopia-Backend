@@ -10,17 +10,17 @@ type PostRepository interface {
 	UpdatePost(post entity.Post) entity.Post
 	DeletePost(post entity.Post)
 	AllPost() []entity.Post
-	FindPostByID(ID uint64) entity.Post
+	FindPostByID(postID uint64) entity.Post
 }
 
 type postConnection struct {
 	connection *gorm.DB
 }
 
-// NewPostRepository is creates a new instance of PostRepository
-func NewPostRepository(db *gorm.DB) PostRepository {
+//NewPostRepository creates an instance BookRepository
+func NewPostRepository(databaseConnection *gorm.DB) PostRepository {
 	return &postConnection{
-		connection: db,
+		connection: databaseConnection,
 	}
 }
 
@@ -39,14 +39,15 @@ func (db *postConnection) UpdatePost(post entity.Post) entity.Post {
 func (db *postConnection) DeletePost(post entity.Post) {
 	db.connection.Delete(&post)
 }
+
+func (db *postConnection) FindPostByID(postID uint64) entity.Post {
+	var post entity.Post
+	db.connection.Preload("User").Find(&post, postID)
+	return post
+}
+
 func (db *postConnection) AllPost() []entity.Post {
 	var posts []entity.Post
 	db.connection.Preload("User").Find(&posts)
 	return posts
-}
-
-func (db *postConnection) FindPostByID(ID uint64) entity.Post {
-	var post entity.Post
-	db.connection.Preload("User").Find(&post, ID)
-	return post
 }

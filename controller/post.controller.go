@@ -21,13 +21,12 @@ type PostController interface {
 	Delete(context *gin.Context)
 }
 
-// postController is a struct to implement PostController
 type postController struct {
 	postService service.PostService
 	jwtService  service.JWTService
 }
 
-// NewPostController is a function to create a new instance of PostController
+//NewPostController create a new instances of PostController
 func NewPostController(postServ service.PostService, jwtServ service.JWTService) PostController {
 	return &postController{
 		postService: postServ,
@@ -35,14 +34,12 @@ func NewPostController(postServ service.PostService, jwtServ service.JWTService)
 	}
 }
 
-// All is a function to get all posts
 func (c *postController) All(context *gin.Context) {
 	var posts []entity.Post = c.postService.All()
 	response := helper.BuildResponse(true, "Get all posts successfully", posts)
 	context.JSON(http.StatusOK, response)
 }
 
-// FindByID is a function to find a post by id
 func (c *postController) FindByID(context *gin.Context) {
 	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 	if err != nil {
@@ -51,34 +48,32 @@ func (c *postController) FindByID(context *gin.Context) {
 		return
 	}
 
-	var post entity.Post = c.postService.FindPostByID(id)
+	var post entity.Post = c.postService.FindByID(id)
 	if (post == entity.Post{}) {
-		response := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
-		context.JSON(http.StatusNotFound, response)
+		res := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
+		context.JSON(http.StatusNotFound, res)
 	} else {
-		response := helper.BuildResponse(true, "Get post successfully", post)
-		context.JSON(http.StatusOK, response)
+		res := helper.BuildResponse(true, "Found post", post)
+		context.JSON(http.StatusOK, res)
 	}
 }
 
 func (c *postController) Insert(context *gin.Context) {
 	var postCreateDTO dto.PostCreateDTO
-	errDTO := context.BindJSON(&postCreateDTO)
+	errDTO := context.ShouldBind(&postCreateDTO)
 	if errDTO != nil {
-		response := helper.BuildErrorResponse("Invalid request", errDTO.Error(), helper.EmptyObj{})
-		context.AbortWithStatusJSON(http.StatusBadRequest, response)
-
+		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+		context.JSON(http.StatusBadRequest, res)
 	} else {
 		authHeader := context.GetHeader("Authorization")
 		userID := c.getUserIDByToken(authHeader)
-		convertedUserId, err := strconv.ParseUint(userID, 10, 64)
+		convertedUserID, err := strconv.ParseUint(userID, 10, 64)
 		if err == nil {
-			postCreateDTO.UserID = convertedUserId
+			postCreateDTO.UserID = convertedUserID
 		}
 		result := c.postService.Insert(postCreateDTO)
-		response := helper.BuildResponse(true, "Insert post successfully", result)
-		context.JSON(http.StatusOK, response)
-
+		response := helper.BuildResponse(true, "Insert post sucessfully", result)
+		context.JSON(http.StatusCreated, response)
 	}
 }
 
@@ -116,7 +111,7 @@ func (c *postController) Delete(context *gin.Context) {
 	var post entity.Post
 	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 	if err != nil {
-		response := helper.BuildErrorResponse("Failed to get ID", "No param id were found", helper.EmptyObj{})
+		response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
 		context.JSON(http.StatusBadRequest, response)
 	}
 	post.ID = id
@@ -136,6 +131,7 @@ func (c *postController) Delete(context *gin.Context) {
 		context.JSON(http.StatusForbidden, response)
 	}
 }
+
 func (c *postController) getUserIDByToken(token string) string {
 	aToken, err := c.jwtService.ValidateToken(token)
 	if err != nil {

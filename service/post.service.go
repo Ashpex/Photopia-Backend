@@ -15,7 +15,7 @@ type PostService interface {
 	Update(post dto.PostUpdateDTO) entity.Post
 	Delete(post entity.Post)
 	All() []entity.Post
-	FindPostByID(ID uint64) entity.Post
+	FindByID(ID uint64) entity.Post
 	IsAllowedToEdit(userID string, postID uint64) bool
 }
 
@@ -61,12 +61,12 @@ func (service *postService) All() []entity.Post {
 	return service.postRepository.AllPost()
 }
 
-func (service *postService) FindPostByID(ID uint64) entity.Post {
+func (service *postService) FindByID(ID uint64) entity.Post {
 	return service.postRepository.FindPostByID(ID)
 }
 
 func (service *postService) IsAllowedToEdit(userID string, postID uint64) bool {
-	b := service.postRepository.FindPostByID(postID)
-	id := fmt.Sprintf("%v", b.UserID)
+	post := service.postRepository.FindPostByID(postID)
+	id := fmt.Sprintf("%v", post.UserID)
 	return userID == id
 }

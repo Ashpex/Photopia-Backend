@@ -70,7 +70,8 @@ func (db *userConnection) FindByEmail(email string) entity.User {
 
 func (db *userConnection) ProfileUser(userID string) entity.User {
 	var user entity.User
-	db.connection.Where("id = ?", userID).Take(&user)
+	//db.connection.Where("id = ?", userID).Take(&user)
+	db.connection.Preload("Posts").Preload("Posts.User").Find(&user, userID)
 	return user
 }
 
