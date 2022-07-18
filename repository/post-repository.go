@@ -11,6 +11,7 @@ type PostRepository interface {
 	DeletePost(post entity.Post)
 	AllPost() []entity.Post
 	FindPostByID(postID uint64) entity.Post
+	FindPostByTopicID(topicID uint64) []entity.Post
 }
 
 type postConnection struct {
@@ -49,5 +50,11 @@ func (db *postConnection) FindPostByID(postID uint64) entity.Post {
 func (db *postConnection) AllPost() []entity.Post {
 	var posts []entity.Post
 	db.connection.Preload("User").Find(&posts)
+	return posts
+}
+
+func (db *postConnection) FindPostByTopicID(topicID uint64) []entity.Post {
+	var posts []entity.Post
+	db.connection.Preload("User").Find(&posts, "topic_id = ?", topicID)
 	return posts
 }

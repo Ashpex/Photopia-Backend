@@ -16,6 +16,7 @@ import (
 type PostController interface {
 	All(context *gin.Context)
 	FindByID(context *gin.Context)
+	FindByTopicID(context *gin.Context)
 	Insert(context *gin.Context)
 	Update(context *gin.Context)
 	Delete(context *gin.Context)
@@ -23,11 +24,11 @@ type PostController interface {
 
 type postController struct {
 	postService service.PostService
-	jwtService  service.JWTService
+	jwtService  helper.JWTService
 }
 
 //NewPostController create a new instances of PostController
-func NewPostController(postServ service.PostService, jwtServ service.JWTService) PostController {
+func NewPostController(postServ service.PostService, jwtServ helper.JWTService) PostController {
 	return &postController{
 		postService: postServ,
 		jwtService:  jwtServ,
@@ -58,12 +59,25 @@ func (c *postController) FindByID(context *gin.Context) {
 	}
 }
 
+func (c *postController) FindByTopicID(context *gin.Context) {
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
+	if err != nil {
+		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
+		context.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+
+	var posts []entity.Post = c.postService.FindByTopicID(id)
+	response := helper.BuildResponse(true, "Get all posts successfully", posts)
+	context.JSON(http.StatusOK, response)
+}
+
 func (c *postController) Insert(context *gin.Context) {
 	var postCreateDTO dto.PostCreateDTO
-	errDTO := context.ShouldBind(&postCreateDTO)
-	if errDTO != nil {
-		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
-		context.JSON(http.StatusBadRequest, res)
+	err := context.ShouldBind(&postCreateDTO)
+	if err != nil {
+		response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
+		context.JSON(http.StatusBadRequest, response)
 	} else {
 		authHeader := context.GetHeader("Authorization")
 		userID := c.getUserIDByToken(authHeader)
@@ -79,17 +93,17 @@ func (c *postController) Insert(context *gin.Context) {
 
 func (c *postController) Update(context *gin.Context) {
 	var postUpdateDTO dto.PostUpdateDTO
-	errDTO := context.ShouldBind(&postUpdateDTO)
-	if errDTO != nil {
-		res := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+	err := context.ShouldBind(&postUpdateDTO)
+	if err != nil {
+		res := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
 		context.JSON(http.StatusBadRequest, res)
 		return
 	}
 
 	authHeader := context.GetHeader("Authorization")
-	token, errToken := c.jwtService.ValidateToken(authHeader)
-	if errToken != nil {
-		panic(errToken.Error())
+	token, err := c.jwtService.ValidateToken(authHeader)
+	if err != nil {
+		fmt.Sprintf("%v", err.Error())
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])
@@ -118,7 +132,7 @@ func (c *postController) Delete(context *gin.Context) {
 	authHeader := context.GetHeader("Authorization")
 	token, errToken := c.jwtService.ValidateToken(authHeader)
 	if errToken != nil {
-		panic(errToken.Error())
+		fmt.Sprintf("%v", errToken.Error())
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])

@@ -1,4 +1,4 @@
-package service
+package helper
 
 import (
 	"fmt"
@@ -51,7 +51,7 @@ func (j *jwtService) GenerateToken(UserID string) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(j.secretKey))
 	if err != nil {
-		panic(err)
+		fmt.Sprintf("Error: %v", err)
 	}
 	return t
 }

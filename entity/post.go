@@ -8,6 +8,8 @@ type Post struct {
 	Description string `gorm:"type:text" json:"description"`
 	UserID      uint64 `gorm:"not null" json:"-"`
 	User        User   `gorm:"foreignkey:UserID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"user"`
+	//TopicID     []uint64 `gorm:"not null" json:"-"`
+	//Topic       []Topic  `gorm:"many2many:post_topic;association_join_table_foreignkey:post_id;foreignkey:id;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"topic"`
 	//PhotoUrl    string `json:"photo_url"`
 	//Photo  *multipart.FileHeader `json:"photo" form:"photo" binding:"required"`
 }

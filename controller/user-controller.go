@@ -19,11 +19,11 @@ type UserController interface {
 
 type userController struct {
 	userService service.UserService
-	jwtService  service.JWTService
+	jwtService  helper.JWTService
 }
 
 //NewUserController is creating anew instance of UserControlller
-func NewUserController(userService service.UserService, jwtService service.JWTService) UserController {
+func NewUserController(userService service.UserService, jwtService helper.JWTService) UserController {
 	return &userController{
 		userService: userService,
 		jwtService:  jwtService,
@@ -32,17 +32,17 @@ func NewUserController(userService service.UserService, jwtService service.JWTSe
 
 func (uc *userController) Update(context *gin.Context) {
 	var userUpdateDTO dto.UserUpdateDTO
-	errDTO := context.ShouldBind(&userUpdateDTO)
-	if errDTO != nil {
-		response := helper.BuildErrorResponse("Failed to process request", errDTO.Error(), helper.EmptyObj{})
+	err := context.ShouldBind(&userUpdateDTO)
+	if err != nil {
+		response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 
 	authHeader := context.GetHeader("Authorization")
-	token, errToken := uc.jwtService.ValidateToken(authHeader)
-	if errToken != nil {
-		panic(errToken.Error())
+	token, err := uc.jwtService.ValidateToken(authHeader)
+	if err != nil {
+		fmt.Sprintf("%v", err.Error())
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	id, err := strconv.ParseUint(fmt.Sprintf("%v", claims["user_id"]), 10, 64)

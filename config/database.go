@@ -27,7 +27,7 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		panic("Failed to create a connection to config")
 	}
-	db.AutoMigrate(&entity.User{}, &entity.Post{})
+	db.AutoMigrate(&entity.User{}, &entity.Post{}, &entity.Topic{})
 	return db
 }
 

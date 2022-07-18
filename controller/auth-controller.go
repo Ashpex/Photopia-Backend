@@ -19,11 +19,11 @@ type AuthController interface {
 
 type authController struct {
 	authService service.AuthService
-	jwtService  service.JWTService
+	jwtService  helper.JWTService
 }
 
 //NewAuthController creates a new instance of AuthController
-func NewAuthController(authService service.AuthService, jwtService service.JWTService) AuthController {
+func NewAuthController(authService service.AuthService, jwtService helper.JWTService) AuthController {
 	return &authController{
 		authService: authService,
 		jwtService:  jwtService,

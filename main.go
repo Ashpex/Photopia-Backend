@@ -3,21 +3,24 @@ package main
 import (
 	"example.com/gallery/config"
 	"example.com/gallery/controller"
+	"example.com/gallery/helper"
 	"example.com/gallery/middleware"
 	"example.com/gallery/repository"
 	"example.com/gallery/service"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"log"
 )
 
 var (
 	// db is a global variable that represents the config connection
 	db *gorm.DB = config.SetupDB()
 	// Database repository
-	userRepository repository.UserRepository = repository.NewUserRepository(db)
-	postRepository repository.PostRepository = repository.NewPostRepository(db)
+	userRepository  repository.UserRepository  = repository.NewUserRepository(db)
+	postRepository  repository.PostRepository  = repository.NewPostRepository(db)
+	topicRepository repository.TopicRepository = repository.NewTopicRepository(db)
 	// jwtService is a global variable that represents the jwt service (json web token)
-	jwtService service.JWTService = service.NewJWTService()
+	jwtService helper.JWTService = helper.NewJWTService()
 	// Authentication service and controller
 	authService    service.AuthService       = service.NewAuthService(userRepository)
 	authController controller.AuthController = controller.NewAuthController(authService, jwtService)
@@ -28,9 +31,13 @@ var (
 	// Post service and controller
 	postService    service.PostService       = service.NewPostService(postRepository)
 	postController controller.PostController = controller.NewPostController(postService, jwtService)
+	// Topic service and controller
+	topicService    service.TopicService       = service.NewTopicService(topicRepository)
+	topicController controller.TopicController = controller.NewTopicController(topicService, jwtService)
 )
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	defer config.CloseDB(db)
 	r := gin.Default()
 	authRoutes := r.Group("api/auth")
@@ -52,6 +59,12 @@ func main() {
 		postRoutes.GET("/:id", postController.FindByID)
 		postRoutes.PUT("/:id", postController.Update)
 		postRoutes.DELETE("/:id", postController.Delete)
+	}
+	topicRoutes := r.Group("api/topics")
+	{
+		topicRoutes.GET("/", topicController.All)
+		topicRoutes.POST("/", topicController.Insert)
+		topicRoutes.GET("/:id", topicController.FindByID)
 	}
 
 	err := r.Run()
