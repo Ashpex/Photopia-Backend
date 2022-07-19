@@ -16,9 +16,11 @@ var (
 	// db is a global variable that represents the config connection
 	db *gorm.DB = config.SetupDB()
 	// Database repository
-	userRepository  repository.UserRepository  = repository.NewUserRepository(db)
-	postRepository  repository.PostRepository  = repository.NewPostRepository(db)
-	topicRepository repository.TopicRepository = repository.NewTopicRepository(db)
+	userRepository     repository.UserRepository     = repository.NewUserRepository(db)
+	postRepository     repository.PostRepository     = repository.NewPostRepository(db)
+	topicRepository    repository.TopicRepository    = repository.NewTopicRepository(db)
+	commentRepository  repository.CommentRepository  = repository.NewCommentRepository(db)
+	followerRepository repository.FollowerRepository = repository.NewFollowerRepository(db)
 	// jwtService is a global variable that represents the jwt service (json web token)
 	jwtService helper.JWTService = helper.NewJWTService()
 	// Authentication service and controller
@@ -34,6 +36,12 @@ var (
 	// Topic service and controller
 	topicService    service.TopicService       = service.NewTopicService(topicRepository)
 	topicController controller.TopicController = controller.NewTopicController(topicService, jwtService)
+	// Comment service and controller
+	commentService    service.CommentService       = service.NewCommentService(commentRepository)
+	commentController controller.CommentController = controller.NewCommentController(commentService, jwtService)
+	// Follower service and controller
+	followerService    service.FollowService         = service.NewFollowService(followerRepository)
+	followerController controller.FollowerController = controller.NewFollowerController(followerService, jwtService)
 )
 
 func main() {
@@ -66,6 +74,22 @@ func main() {
 		topicRoutes.GET("/", topicController.All)
 		topicRoutes.POST("/", topicController.Insert)
 		topicRoutes.GET("/:id", topicController.FindByID)
+	}
+	commentRoutes := r.Group("api/comments", middleware.AuthorizeJWT(jwtService))
+	{
+		commentRoutes.GET("/", commentController.All)
+		commentRoutes.POST("/", commentController.Insert)
+		commentRoutes.GET("/:id", commentController.FindByID)
+		commentRoutes.PUT("/:id", commentController.Update)
+		commentRoutes.DELETE("/:id", commentController.Delete)
+		commentRoutes.GET("/post/:id", commentController.FindByPostID)
+	}
+
+	followerRoutes := r.Group("api/followers", middleware.AuthorizeJWT(jwtService))
+	{
+		followerRoutes.GET("/", followerController.All)
+		followerRoutes.POST("/", followerController.Follow)
+		followerRoutes.DELETE("/", followerController.Unfollow)
 	}
 
 	err := r.Run()

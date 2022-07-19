@@ -29,6 +29,7 @@ func (db *postConnection) InsertPost(post entity.Post) entity.Post {
 	db.connection.Save(&post)
 	db.connection.Preload("User").Find(&post)
 	db.connection.Preload("Topic").Find(&post)
+	db.connection.Preload("Comments").Find(&post)
 
 	return post
 }
@@ -37,6 +38,7 @@ func (db *postConnection) UpdatePost(post entity.Post) entity.Post {
 	db.connection.Save(&post)
 	db.connection.Preload("User").Find(&post)
 	db.connection.Preload("Topic").Find(&post)
+	db.connection.Preload("Comments").Find(&post)
 	return post
 }
 

@@ -60,7 +60,7 @@ func (c *postController) FindByID(context *gin.Context) {
 }
 
 func (c *postController) FindByTopicID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
+	id, err := strconv.ParseUint(context.Param("topic_id"), 0, 0)
 	if err != nil {
 		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
@@ -130,9 +130,9 @@ func (c *postController) Delete(context *gin.Context) {
 	}
 	post.ID = id
 	authHeader := context.GetHeader("Authorization")
-	token, errToken := c.jwtService.ValidateToken(authHeader)
-	if errToken != nil {
-		fmt.Sprintf("%v", errToken.Error())
+	token, err := c.jwtService.ValidateToken(authHeader)
+	if err != nil {
+		fmt.Sprintf("%v", err.Error())
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])
