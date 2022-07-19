@@ -59,6 +59,7 @@ func main() {
 		postRoutes.GET("/:id", postController.FindByID)
 		postRoutes.PUT("/:id", postController.Update)
 		postRoutes.DELETE("/:id", postController.Delete)
+		postRoutes.GET("/topic/:id", postController.FindByTopicID)
 	}
 	topicRoutes := r.Group("api/topics")
 	{
