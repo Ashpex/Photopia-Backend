@@ -83,7 +83,7 @@ func main() {
 	commentRoutes := r.Group("api/comments", middleware.AuthorizeJWT(jwtService))
 	{
 		commentRoutes.GET("/", commentController.All)
-		commentRoutes.POST("/:id", commentController.Insert)
+		commentRoutes.POST("/:post_id", commentController.Insert)
 		commentRoutes.GET("/:id", commentController.FindByID)
 		commentRoutes.PUT("/:id", commentController.Update)
 		commentRoutes.DELETE("/:id", commentController.Delete)

@@ -33,20 +33,20 @@ func NewCommentController(commentService service.CommentService, jwtService help
 	}
 }
 
-func (controller *commentController) All(context *gin.Context) {
-	comments := controller.commentService.All()
+func (c *commentController) All(context *gin.Context) {
+	comments := c.commentService.All()
 	response := helper.BuildResponse(true, "Get all comments successfully", comments)
 	context.JSON(http.StatusOK, response)
 }
 
-func (controller *commentController) FindByID(context *gin.Context) {
+func (c *commentController) FindByID(context *gin.Context) {
 	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 	if err != nil {
 		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	var comment entity.Comment = controller.commentService.FindByID(id)
+	var comment entity.Comment = c.commentService.FindByID(id)
 	if (comment == entity.Comment{}) {
 		response := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
 		context.JSON(http.StatusNotFound, response)
@@ -57,14 +57,14 @@ func (controller *commentController) FindByID(context *gin.Context) {
 
 }
 
-func (controller *commentController) FindCommentByPostID(context *gin.Context) {
+func (c *commentController) FindCommentByPostID(context *gin.Context) {
 	id, err := strconv.ParseUint(context.Param("post_id"), 0, 0)
 	if err != nil {
 		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	var comments []entity.Comment = controller.commentService.FindCommentByPostID(id)
+	var comments []entity.Comment = c.commentService.FindCommentByPostID(id)
 	if comments == nil {
 		response := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
 		context.JSON(http.StatusNotFound, response)
@@ -77,12 +77,12 @@ func (controller *commentController) FindCommentByPostID(context *gin.Context) {
 
 func (c *commentController) Insert(context *gin.Context) {
 	var commentCreateDTO dto.CommentCreateDTO
-	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
+	postId, err := strconv.ParseUint(context.Param("post_id"), 0, 0)
 	if err != nil {
 		response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
 		context.JSON(http.StatusBadRequest, response)
+		return
 	}
-	commentCreateDTO.PostID = id
 	err2 := context.ShouldBind(&commentCreateDTO)
 	if err2 != nil {
 		response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
@@ -93,6 +93,7 @@ func (c *commentController) Insert(context *gin.Context) {
 		convertedUserID, err := strconv.ParseUint(userID, 10, 64)
 		if err == nil {
 			commentCreateDTO.UserID = convertedUserID
+			commentCreateDTO.PostID = postId
 		}
 
 		result := c.commentService.Insert(commentCreateDTO)
@@ -101,7 +102,7 @@ func (c *commentController) Insert(context *gin.Context) {
 	}
 }
 
-func (controller *commentController) Update(context *gin.Context) {
+func (c *commentController) Update(context *gin.Context) {
 	var commentUpdateDTO dto.CommentUpdateDTO
 	err := context.ShouldBind(&commentUpdateDTO)
 	if err != nil {
@@ -109,20 +110,28 @@ func (controller *commentController) Update(context *gin.Context) {
 		context.JSON(http.StatusBadRequest, res)
 		return
 	}
-
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
+	if err != nil {
+		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
+		context.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+	commentUpdateDTO.ID = id
+	var comment entity.Comment = c.commentService.FindByID(id)
 	authHeader := context.GetHeader("Authorization")
-	token, err := controller.jwtService.ValidateToken(authHeader)
+	token, err := c.jwtService.ValidateToken(authHeader)
 	if err != nil {
 		fmt.Sprintf("%v", err.Error())
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])
-	if controller.commentService.IsAllowedToEdit(userID, commentUpdateDTO.ID) {
+	if c.commentService.IsAllowedToEdit(userID, commentUpdateDTO.ID) {
 		id, errID := strconv.ParseUint(userID, 10, 64)
 		if errID == nil {
 			commentUpdateDTO.UserID = id
+			commentUpdateDTO.PostID = comment.PostID
 		}
-		result := controller.commentService.Update(commentUpdateDTO)
+		result := c.commentService.Update(commentUpdateDTO)
 		response := helper.BuildResponse(true, "OK", result)
 		context.JSON(http.StatusOK, response)
 	} else {
@@ -131,7 +140,7 @@ func (controller *commentController) Update(context *gin.Context) {
 	}
 }
 
-func (controller *commentController) Delete(context *gin.Context) {
+func (c *commentController) Delete(context *gin.Context) {
 	var comment entity.Comment
 	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 	if err != nil {
@@ -140,14 +149,14 @@ func (controller *commentController) Delete(context *gin.Context) {
 	}
 	comment.ID = id
 	authHeader := context.GetHeader("Authorization")
-	token, err := controller.jwtService.ValidateToken(authHeader)
+	token, err := c.jwtService.ValidateToken(authHeader)
 	if err != nil {
 		fmt.Sprintf("%v", err.Error())
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	userID := fmt.Sprintf("%v", claims["user_id"])
-	if controller.commentService.IsAllowedToEdit(userID, comment.ID) {
-		controller.commentService.Delete(comment)
+	if c.commentService.IsAllowedToEdit(userID, comment.ID) {
+		c.commentService.Delete(comment)
 		response := helper.BuildResponse(true, "Deleted", helper.EmptyObj{})
 		context.JSON(http.StatusOK, response)
 	} else {
@@ -156,8 +165,8 @@ func (controller *commentController) Delete(context *gin.Context) {
 	}
 }
 
-func (context *commentController) getUserIDByToken(token string) string {
-	aToken, err := context.jwtService.ValidateToken(token)
+func (c *commentController) getUserIDByToken(token string) string {
+	aToken, err := c.jwtService.ValidateToken(token)
 	if err != nil {
 		panic(err.Error())
 	}
