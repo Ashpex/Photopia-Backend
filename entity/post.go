@@ -12,6 +12,7 @@ type Post struct {
 	//Topic       Topic  `gorm:"many2many:post_topic;association_join_table_foreignkey:post_id;foreignkey:id;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"topic"`
 	Topic    Topic      `gorm:"foreignkey:TopicID;constraint:onUpdate:CASCADE,onDelete:CASCADE" json:"topic"`
 	Comments *[]Comment `json:"comments,omitempty"`
+	Likes    *[]Like    `json:"likes,omitempty"`
 	//PhotoUrl    string `json:"photo_url"`
 	//Photo  *multipart.FileHeader `json:"photo" form:"photo" binding:"required"`
 }

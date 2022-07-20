@@ -5,7 +5,9 @@ import (
 	"example.com/gallery/entity"
 	"example.com/gallery/helper"
 	"example.com/gallery/service"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"net/http"
 	"strconv"
 )
@@ -13,7 +15,8 @@ import (
 type FollowerController interface {
 	Follow(c *gin.Context)
 	Unfollow(c *gin.Context)
-	All(c *gin.Context)
+	AllFollowers(c *gin.Context)
+	AllFollowing(c *gin.Context)
 }
 
 type followerController struct {
@@ -29,16 +32,31 @@ func NewFollowerController(followerService service.FollowService, jwtServ helper
 	}
 }
 
-func (c *followerController) All(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("user_id"), 0, 0)
+//All is a function that get all followers of a user
+func (c *followerController) AllFollowers(context *gin.Context) {
+	userId, err := strconv.ParseUint(context.Param("user_id"), 0, 0)
 	if err != nil {
-		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
+		response := helper.BuildErrorResponse("No param user_id was found", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 
-	var followers []entity.Follower = c.followerService.AllFollowers(id)
+	var followers []entity.Follower = c.followerService.AllFollowers(userId)
 	response := helper.BuildResponse(true, "Get all followers successfully", followers)
+	context.JSON(http.StatusOK, response)
+}
+
+//AllFollowing is a function that get all following of a user
+func (c *followerController) AllFollowing(context *gin.Context) {
+	userId, err := strconv.ParseUint(context.Param("user_id"), 0, 0)
+	if err != nil {
+		response := helper.BuildErrorResponse("No param user_id was found", err.Error(), helper.EmptyObj{})
+		context.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+
+	var following []entity.Follower = c.followerService.AllFollowing(userId)
+	response := helper.BuildResponse(true, "Get all following successfully", following)
 	context.JSON(http.StatusOK, response)
 }
 
@@ -49,11 +67,18 @@ func (c *followerController) Follow(context *gin.Context) {
 		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
+	} else {
+		authHeader := context.GetHeader("Authorization")
+		userID := c.getUserIDByToken(authHeader)
+		convertedUserID, err := strconv.ParseUint(userID, 10, 64)
+		if err == nil {
+			followerFollowDTO.TargetUserID = convertedUserID
+		}
+		result := c.followerService.Follow(followerFollowDTO)
+		response := helper.BuildResponse(true, "Follow sucessfully", result)
+		context.JSON(http.StatusCreated, response)
 	}
 
-	follower := c.followerService.Follow(followerFollowDTO)
-	response := helper.BuildResponse(true, "Follow successfully", follower)
-	context.JSON(http.StatusOK, response)
 }
 
 func (c *followerController) Unfollow(context *gin.Context) {
@@ -68,4 +93,14 @@ func (c *followerController) Unfollow(context *gin.Context) {
 	c.followerService.UnFollow(follower)
 	res := helper.BuildResponse(true, "Unfollow successfully", helper.EmptyObj{})
 	context.JSON(http.StatusOK, res)
+}
+
+func (c *followerController) getUserIDByToken(token string) string {
+	aToken, err := c.jwtService.ValidateToken(token)
+	if err != nil {
+		fmt.Println("Can not get user id from token: ", err)
+	}
+	claims := aToken.Claims.(jwt.MapClaims)
+	id := fmt.Sprintf("%v", claims["user_id"])
+	return id
 }

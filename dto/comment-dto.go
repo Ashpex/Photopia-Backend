@@ -14,7 +14,7 @@ type name struct {
 type CommentCreateDTO struct {
 	Content string `json:"content" form:"content" binding:"required"`
 	UserID  uint64 `json:"user_id,omitempty"  form:"user_id,omitempty"`
-	PostID  uint64 `json:"post_id,omitempty"  form:"post_id,omitempty"`
+	PostID  uint64 `json:"post_id"  form:"post_id"`
 }
 
 // CommentDeleteDTO is used by client when DELETE comment

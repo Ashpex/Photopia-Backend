@@ -27,7 +27,7 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		panic("Failed to create a connection to config")
 	}
-	db.AutoMigrate(&entity.User{}, &entity.Post{}, &entity.Topic{}, &entity.Comment{}, &entity.Follower{})
+	db.AutoMigrate(&entity.User{}, &entity.Post{}, &entity.Topic{}, &entity.Comment{}, &entity.Follower{}, &entity.Like{})
 	return db
 }
 
@@ -35,7 +35,7 @@ func SetupDB() *gorm.DB {
 func CloseDB(db *gorm.DB) {
 	dbSQL, err := db.DB()
 	if err != nil {
-		panic("Failed to close connection from config")
+		fmt.Sprintf("Failed to close connection to config")
 	}
 	dbSQL.Close()
 }

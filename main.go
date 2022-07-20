@@ -21,6 +21,7 @@ var (
 	topicRepository    repository.TopicRepository    = repository.NewTopicRepository(db)
 	commentRepository  repository.CommentRepository  = repository.NewCommentRepository(db)
 	followerRepository repository.FollowerRepository = repository.NewFollowerRepository(db)
+	likeRepository     repository.LikeRepository     = repository.NewLikeRepository(db)
 	// jwtService is a global variable that represents the jwt service (json web token)
 	jwtService helper.JWTService = helper.NewJWTService()
 	// Authentication service and controller
@@ -42,6 +43,9 @@ var (
 	// Follower service and controller
 	followerService    service.FollowService         = service.NewFollowService(followerRepository)
 	followerController controller.FollowerController = controller.NewFollowerController(followerService, jwtService)
+	// Like service and controller
+	likeService    service.LikeService       = service.NewLikeService(likeRepository)
+	likeController controller.LikeController = controller.NewLikeController(likeService, jwtService)
 )
 
 func main() {
@@ -87,9 +91,18 @@ func main() {
 
 	followerRoutes := r.Group("api/followers", middleware.AuthorizeJWT(jwtService))
 	{
-		followerRoutes.GET("/", followerController.All)
+		followerRoutes.GET("/:id", followerController.AllFollowers)
+		followerRoutes.GET("/following/:id", followerController.AllFollowing)
 		followerRoutes.POST("/", followerController.Follow)
-		followerRoutes.DELETE("/", followerController.Unfollow)
+		followerRoutes.DELETE("/:id", followerController.Unfollow)
+	}
+
+	likeRoutes := r.Group("api/likes", middleware.AuthorizeJWT(jwtService))
+	{
+		likeRoutes.GET("/:id", likeController.AllLikes)
+		likeRoutes.POST("/", likeController.Like)
+		likeRoutes.DELETE("/:id", likeController.UnLike)
+		likeRoutes.GET("/count/:id", likeController.CountLikes)
 	}
 
 	err := r.Run()

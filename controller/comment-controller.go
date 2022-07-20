@@ -89,7 +89,7 @@ func (c *commentController) Insert(context *gin.Context) {
 			commentCreateDTO.UserID = convertedUserID
 		}
 		result := c.commentService.Insert(commentCreateDTO)
-		response := helper.BuildResponse(true, "Insert comment sucessfully", result)
+		response := helper.BuildResponse(true, "Insert comment successfully", result)
 		context.JSON(http.StatusCreated, response)
 	}
 }

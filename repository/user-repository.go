@@ -72,6 +72,8 @@ func (db *userConnection) ProfileUser(userID string) entity.User {
 	var user entity.User
 	//db.connection.Where("id = ?", userID).Take(&user)
 	db.connection.Preload("Posts").Preload("Posts.User").Find(&user, userID)
+	db.connection.Preload("Followers").Preload("Followers.User").Find(&user, userID)
+	db.connection.Preload("Following").Preload("Following.User").Find(&user, userID)
 	return user
 }
 
