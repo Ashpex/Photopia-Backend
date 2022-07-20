@@ -20,6 +20,7 @@ type PostController interface {
 	Insert(context *gin.Context)
 	Update(context *gin.Context)
 	Delete(context *gin.Context)
+	GetTrendingPosts(context *gin.Context)
 }
 
 type postController struct {
@@ -154,4 +155,9 @@ func (c *postController) getUserIDByToken(token string) string {
 	claims := aToken.Claims.(jwt.MapClaims)
 	id := fmt.Sprintf("%v", claims["user_id"])
 	return id
+}
+func (c *postController) GetTrendingPosts(context *gin.Context) {
+	var posts []entity.Post = c.postService.GetTrendingPosts()
+	response := helper.BuildResponse(true, "Get all trending posts successfully", posts)
+	context.JSON(http.StatusOK, response)
 }

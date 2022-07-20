@@ -57,20 +57,24 @@ func (controller *likeController) UnLike(context *gin.Context) {
 	if err != nil {
 		response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
 		context.JSON(http.StatusBadRequest, response)
+	} else {
+		like.PostID = id
+		authHeader := context.GetHeader("Authorization")
+		userID := controller.getUserIDByToken(authHeader)
+		convertedUserID, err := strconv.ParseUint(userID, 10, 64)
+		if err == nil {
+			like.UserID = convertedUserID
+			controller.likeService.Unlike(like)
+			response := helper.BuildResponse(true, "Unlike successfully", helper.EmptyObj{})
+			context.JSON(http.StatusOK, response)
+		}
+		if err != nil {
+			fmt.Sprintf("%v", err.Error())
+			response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
+			context.JSON(http.StatusBadRequest, response)
+		}
 	}
-	like.PostID = id
-	authHeader := context.GetHeader("Authorization")
-	userID := controller.getUserIDByToken(authHeader)
-	convertedUserID, err := strconv.ParseUint(userID, 10, 64)
-	if err == nil {
-		like.UserID = convertedUserID
-	}
-	if err != nil {
-		fmt.Sprintf("%v", err.Error())
-	}
-	controller.likeService.Unlike(like)
-	response := helper.BuildResponse(true, "Unlike successfully", like)
-	context.JSON(http.StatusOK, response)
+
 }
 
 func (controller *likeController) AllLikes(context *gin.Context) {

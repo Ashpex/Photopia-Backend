@@ -72,6 +72,7 @@ func main() {
 		postRoutes.PUT("/:id", postController.Update)
 		postRoutes.DELETE("/:id", postController.Delete)
 		postRoutes.GET("/topic/:id", postController.FindByTopicID)
+		postRoutes.GET("/trending", postController.GetTrendingPosts)
 	}
 	topicRoutes := r.Group("api/topics")
 	{
@@ -82,11 +83,11 @@ func main() {
 	commentRoutes := r.Group("api/comments", middleware.AuthorizeJWT(jwtService))
 	{
 		commentRoutes.GET("/", commentController.All)
-		commentRoutes.POST("/", commentController.Insert)
+		commentRoutes.POST("/:id", commentController.Insert)
 		commentRoutes.GET("/:id", commentController.FindByID)
 		commentRoutes.PUT("/:id", commentController.Update)
 		commentRoutes.DELETE("/:id", commentController.Delete)
-		commentRoutes.GET("/post/:id", commentController.FindByPostID)
+		commentRoutes.GET("/post/:id", commentController.FindCommentByPostID)
 	}
 
 	followerRoutes := r.Group("api/followers", middleware.AuthorizeJWT(jwtService))

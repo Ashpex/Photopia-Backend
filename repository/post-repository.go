@@ -12,6 +12,7 @@ type PostRepository interface {
 	AllPost() []entity.Post
 	FindPostByID(postID uint64) entity.Post
 	FindPostByTopicID(topicID uint64) []entity.Post
+	GetTrendingPosts() []entity.Post
 }
 
 type postConnection struct {
@@ -30,7 +31,7 @@ func (db *postConnection) InsertPost(post entity.Post) entity.Post {
 	db.connection.Preload("User").Find(&post)
 	db.connection.Preload("Topic").Find(&post)
 	db.connection.Preload("Comments").Find(&post)
-
+	db.connection.Preload("Likes").Find(&post)
 	return post
 }
 
@@ -61,5 +62,11 @@ func (db *postConnection) AllPost() []entity.Post {
 func (db *postConnection) FindPostByTopicID(topicID uint64) []entity.Post {
 	var posts []entity.Post
 	db.connection.Preload("User").Find(&posts, "topic_id = ?", topicID)
+	return posts
+}
+
+func (db *postConnection) GetTrendingPosts() []entity.Post {
+	var posts []entity.Post
+	db.connection.Preload("User").Find(&posts, "likes_count > ?", 0)
 	return posts
 }

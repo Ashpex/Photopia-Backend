@@ -28,6 +28,7 @@ func (db *commentConnection) InsertComment(comment entity.Comment) entity.Commen
 	db.connection.Save(&comment)
 	db.connection.Preload("User").Find(&comment)
 	db.connection.Preload("Post").Find(&comment)
+	db.connection.Preload("Comments").Find(&comment)
 	return comment
 }
 
@@ -44,8 +45,7 @@ func (db *commentConnection) DeleteComment(comment entity.Comment) {
 
 func (db *commentConnection) AllComment() []entity.Comment {
 	var comments []entity.Comment
-	db.connection.Preload("User").Find(&comments)
-	db.connection.Preload("Post").Find(&comments)
+	db.connection.Preload("Comment").Find(&comments)
 	return comments
 }
 
@@ -57,6 +57,7 @@ func (db *commentConnection) FindCommentByID(commentID uint64) entity.Comment {
 
 func (db *commentConnection) FindCommentByPostID(postID uint64) []entity.Comment {
 	var comments []entity.Comment
-	db.connection.Preload("Post").Find(&comments, "comment_id = ?", postID)
+	//db.connection.Preload("Post").Find(&comments, "post_id = ?", postID)
+	db.connection.Where("post_id = ?", postID).Find(&comments)
 	return comments
 }

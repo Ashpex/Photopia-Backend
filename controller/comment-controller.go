@@ -15,7 +15,7 @@ import (
 type CommentController interface {
 	All(context *gin.Context)
 	FindByID(context *gin.Context)
-	FindByPostID(context *gin.Context)
+	FindCommentByPostID(context *gin.Context)
 	Insert(context *gin.Context)
 	Update(context *gin.Context)
 	Delete(context *gin.Context)
@@ -57,14 +57,14 @@ func (controller *commentController) FindByID(context *gin.Context) {
 
 }
 
-func (controller *commentController) FindByPostID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
+func (controller *commentController) FindCommentByPostID(context *gin.Context) {
+	id, err := strconv.ParseUint(context.Param("post_id"), 0, 0)
 	if err != nil {
 		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	var comments []entity.Comment = controller.commentService.FindByPostID(id)
+	var comments []entity.Comment = controller.commentService.FindCommentByPostID(id)
 	if comments == nil {
 		response := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
 		context.JSON(http.StatusNotFound, response)
@@ -77,8 +77,14 @@ func (controller *commentController) FindByPostID(context *gin.Context) {
 
 func (c *commentController) Insert(context *gin.Context) {
 	var commentCreateDTO dto.CommentCreateDTO
-	err := context.ShouldBind(&commentCreateDTO)
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 	if err != nil {
+		response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
+		context.JSON(http.StatusBadRequest, response)
+	}
+	commentCreateDTO.PostID = id
+	err2 := context.ShouldBind(&commentCreateDTO)
+	if err2 != nil {
 		response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
 		context.JSON(http.StatusBadRequest, response)
 	} else {
@@ -88,6 +94,7 @@ func (c *commentController) Insert(context *gin.Context) {
 		if err == nil {
 			commentCreateDTO.UserID = convertedUserID
 		}
+
 		result := c.commentService.Insert(commentCreateDTO)
 		response := helper.BuildResponse(true, "Insert comment successfully", result)
 		context.JSON(http.StatusCreated, response)

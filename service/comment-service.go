@@ -15,7 +15,7 @@ type CommentService interface {
 	Delete(comment entity.Comment)
 	All() []entity.Comment
 	FindByID(commentID uint64) entity.Comment
-	FindByPostID(postID uint64) []entity.Comment
+	FindCommentByPostID(postID uint64) []entity.Comment
 	IsAllowedToEdit(userID string, commentId uint64) bool
 }
 
@@ -66,7 +66,7 @@ func (service *commentService) FindByID(commentID uint64) entity.Comment {
 	return service.commentRepository.FindCommentByID(commentID)
 }
 
-func (service *commentService) FindByPostID(postID uint64) []entity.Comment {
+func (service *commentService) FindCommentByPostID(postID uint64) []entity.Comment {
 	return service.commentRepository.FindCommentByPostID(postID)
 }
 func (service *commentService) IsAllowedToEdit(userID string, commentId uint64) bool {
