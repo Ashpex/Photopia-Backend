@@ -1,9 +1,6 @@
 package dto
 
-type UnfollowDTO struct {
-	TargetUserID uint64 `json:"follower_id" form:"follower_id" binding:"required"`
-}
-
 type FollowDTO struct {
-	TargetUserID uint64 `json:"user_id" form:"user_id" binding:"required"`
+	UserID     uint64 `json:"user_id" form:"user_id" binding:"omitempty"`
+	FollowerID uint64 `json:"target_user_id" form:"target_user_id" binding:"required"`
 }

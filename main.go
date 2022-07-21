@@ -94,9 +94,9 @@ func main() {
 		commentRoutes.GET("/post/:id", commentController.FindCommentByPostID)
 	}
 
-	followerRoutes := r.Group("api/user/followers", middleware.AuthorizeJWT(jwtService))
+	followerRoutes := r.Group("api/followers", middleware.AuthorizeJWT(jwtService))
 	{
-		followerRoutes.GET("/:id", followerController.AllFollowers)
+		followerRoutes.GET("/", followerController.AllFollowers)
 		followerRoutes.GET("/following/:id", followerController.AllFollowing)
 		followerRoutes.POST("/", followerController.Follow)
 		followerRoutes.DELETE("/:id", followerController.Unfollow)

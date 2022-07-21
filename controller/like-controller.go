@@ -112,7 +112,7 @@ func (controller *likeController) CountLikes(context *gin.Context) {
 func (controller *likeController) getUserIDByToken(token string) string {
 	aToken, err := controller.jwtService.ValidateToken(token)
 	if err != nil {
-		panic(err.Error())
+		fmt.Sprintf("%v", err.Error())
 	}
 	claims := aToken.Claims.(jwt.MapClaims)
 	id := fmt.Sprintf("%v", claims["user_id"])

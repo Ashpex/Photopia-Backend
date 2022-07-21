@@ -30,9 +30,8 @@ func (db *followerConnection) Follow(follower entity.Follower) entity.Follower {
 }
 
 func (db *followerConnection) Unfollow(follower entity.Follower) {
-	db.connection.Delete(&follower)
+	db.connection.Where("user_id = ? AND follower_id = ?", follower.UserID, follower.FollowerID).Delete(&follower)
 	db.connection.Preload("User").Find(&follower)
-	db.connection.Preload("Followers").Find(&follower)
 }
 
 func (db *followerConnection) AllFollower(userID uint64) []entity.Follower {
