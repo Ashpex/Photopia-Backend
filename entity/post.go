@@ -14,6 +14,7 @@ type Post struct {
 	Comments   *[]Comment `gorm:"many2many:comments;constraint:onUpdate:CASCADE,onDelete:SET NULL" json:"comments,omitempty"`
 	Likes      *[]Like    `gorm:"many2many:likes;constraint:onUpdate:CASCADE,onDelete:SET NULL" json:"likes,omitempty"`
 	LikesCount int        `json:"likes_count"`
+	ImagePath  string     `gorm:"type:varchar(255)" json:"image_path" form:"image_path"`
 	//Photo      *multipart.FileHeader `json:"photo,omitempty"`
 	//PhotoUrl    string `json:"photo_url"`
 	//Photo  *multipart.FileHeader `json:"photo" form:"photo" binding:"required"`

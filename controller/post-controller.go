@@ -22,20 +22,23 @@ type PostController interface {
 	Update(context *gin.Context)
 	Delete(context *gin.Context)
 	GetTrendingPosts(context *gin.Context)
+	GetFollowingPosts(context *gin.Context)
 }
 
 type postController struct {
-	postService service.PostService
-	likeService service.LikeService
-	jwtService  helper.JWTService
+	postService   service.PostService
+	likeService   service.LikeService
+	followService service.FollowService
+	jwtService    helper.JWTService
 }
 
 //NewPostController create a new instances of PostController
-func NewPostController(postServ service.PostService, jwtServ helper.JWTService, likeServ service.LikeService) PostController {
+func NewPostController(postServ service.PostService, jwtServ helper.JWTService, likeServ service.LikeService, followerServ service.FollowService) PostController {
 	return &postController{
-		postService: postServ,
-		likeService: likeServ,
-		jwtService:  jwtServ,
+		postService:   postServ,
+		likeService:   likeServ,
+		followService: followerServ,
+		jwtService:    jwtServ,
 	}
 }
 
@@ -90,14 +93,26 @@ func (c *postController) Insert(context *gin.Context) {
 		if err == nil {
 			postCreateDTO.UserID = convertedUserID
 		}
-		// Handle file upload
-		//file, err := context.FormFile("file")
-		//if err != nil {
-		//	response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
-		//	context.JSON(http.StatusBadRequest, response)
-		//	return
-		//}
-		//postCreateDTO.File = file
+		//Handle file upload
+		/*
+			file, err := context.FormFile("file")
+			if err != nil {
+				response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
+				context.JSON(http.StatusBadRequest, response)
+				return
+			}
+			fileType := file.Header.Get("Content-Type")
+			if !isAllowedFileTypes(fileType) {
+				response := helper.BuildErrorResponse("Failed to process request", "File type is not allowed", helper.EmptyObj{})
+				context.JSON(http.StatusBadRequest, response)
+			}
+
+			postCreateDTO.File = file
+			err = context.SaveUploadedFile(file, file.Filename)
+			if err != nil {
+				return
+			}
+		*/
 		result := c.postService.Insert(postCreateDTO)
 		response := helper.BuildResponse(true, "Insert post sucessfully", result)
 		context.JSON(http.StatusCreated, response)
@@ -178,6 +193,32 @@ func (c *postController) GetTrendingPosts(context *gin.Context) {
 		}
 	}
 	response := helper.BuildResponse(true, "Get all trending posts successfully", trendingPosts)
+	context.JSON(http.StatusOK, response)
+}
+
+func (c *postController) GetFollowingPosts(context *gin.Context) {
+	var posts []entity.Post = c.postService.All()
+	var followingPosts []entity.Post
+	authHeader := context.GetHeader("Authorization")
+	token, err := c.jwtService.ValidateToken(authHeader)
+	if err != nil {
+		fmt.Sprintf("%v", err.Error())
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	UserID := fmt.Sprintf("%v", claims["user_id"])
+	UserIDInt, err := strconv.ParseUint(UserID, 10, 64)
+	if err != nil {
+		panic(err.Error())
+	}
+	var followingUser []entity.Follower = c.followService.AllFollowing(UserIDInt)
+	for _, follower := range followingUser {
+		for _, post := range posts {
+			if post.UserID == follower.UserID {
+				followingPosts = append(followingPosts, post)
+			}
+		}
+	}
+	response := helper.BuildResponse(true, "Get all following posts successfully", followingPosts)
 	context.JSON(http.StatusOK, response)
 }
 

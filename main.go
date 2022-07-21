@@ -34,7 +34,7 @@ var (
 
 	// Post service and controller
 	postService    service.PostService       = service.NewPostService(postRepository)
-	postController controller.PostController = controller.NewPostController(postService, jwtService, likeService)
+	postController controller.PostController = controller.NewPostController(postService, jwtService, likeService, followerService)
 	// Topic service and controller
 	topicService    service.TopicService       = service.NewTopicService(topicRepository)
 	topicController controller.TopicController = controller.NewTopicController(topicService, jwtService)
@@ -78,6 +78,7 @@ func main() {
 		postRoutes.GET("/topic/:id", postController.FindByTopicID)
 		//postRoutes.GET("?topic=:id", postController.FindByTopicID)
 		postRoutes.GET("/trending", postController.GetTrendingPosts)
+		postRoutes.GET("/following/", postController.GetFollowingPosts)
 	}
 	topicRoutes := r.Group("api/topics")
 	{

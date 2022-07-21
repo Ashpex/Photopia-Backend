@@ -1,3 +1,11 @@
+FROM nginx:alpine as nginx
+
+WORKDIR /app
+
+COPY . .
+
+COPY ./config/nginx.conf /etc/nginx/nginx.conf
+
 FROM golang:latest as builder
 
 WORKDIR /app
@@ -20,5 +28,4 @@ RUN go build -o /usr/local/bin/main .
  # wait-for-it requires bash, which alpine doesn't ship with by default. Use wait-for instead
 #ADD https://raw.githubusercontent.com/eficode/wait-for/v2.1.0/wait-for /usr/local/bin/wait-for
 #RUN chmod +x /usr/local/bin/wait-for /app/entrypoint.sh
-
 CMD [ "main" ]
