@@ -2,6 +2,7 @@ package repository
 
 import (
 	"example.com/gallery/entity"
+	"example.com/gallery/helper"
 	"gorm.io/gorm"
 )
 
@@ -13,6 +14,7 @@ type PostRepository interface {
 	FindPostByID(postID uint64) entity.Post
 	FindPostByTopicID(topicID uint64) []entity.Post
 	GetTrendingPosts() []entity.Post
+	List(pagination helper.Pagination) (*helper.Pagination, error)
 }
 
 type postConnection struct {
@@ -69,4 +71,10 @@ func (db *postConnection) GetTrendingPosts() []entity.Post {
 	var posts []entity.Post
 	db.connection.Preload("User").Find(&posts, "likes_count > ?", 0)
 	return posts
+}
+
+func (db *postConnection) List(pagination helper.Pagination) (*helper.Pagination, error) {
+	var posts []entity.Post
+	db.connection.Scopes(pagination.Paginate(posts, &pagination, db.connection)).Find(&posts)
+	return &pagination, nil
 }

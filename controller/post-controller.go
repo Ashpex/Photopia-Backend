@@ -86,6 +86,14 @@ func (c *postController) Insert(context *gin.Context) {
 		if err == nil {
 			postCreateDTO.UserID = convertedUserID
 		}
+		// Handle file upload
+		//file, err := context.FormFile("file")
+		//if err != nil {
+		//	response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
+		//	context.JSON(http.StatusBadRequest, response)
+		//	return
+		//}
+		//postCreateDTO.File = file
 		result := c.postService.Insert(postCreateDTO)
 		response := helper.BuildResponse(true, "Insert post sucessfully", result)
 		context.JSON(http.StatusCreated, response)

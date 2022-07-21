@@ -16,12 +16,13 @@ var (
 	// db is a global variable that represents the config connection
 	db *gorm.DB = config.SetupDB()
 	// Database repository
-	userRepository     repository.UserRepository     = repository.NewUserRepository(db)
-	postRepository     repository.PostRepository     = repository.NewPostRepository(db)
-	topicRepository    repository.TopicRepository    = repository.NewTopicRepository(db)
-	commentRepository  repository.CommentRepository  = repository.NewCommentRepository(db)
-	followerRepository repository.FollowerRepository = repository.NewFollowerRepository(db)
-	likeRepository     repository.LikeRepository     = repository.NewLikeRepository(db)
+	userRepository      repository.UserRepository      = repository.NewUserRepository(db)
+	postRepository      repository.PostRepository      = repository.NewPostRepository(db)
+	topicRepository     repository.TopicRepository     = repository.NewTopicRepository(db)
+	commentRepository   repository.CommentRepository   = repository.NewCommentRepository(db)
+	followerRepository  repository.FollowerRepository  = repository.NewFollowerRepository(db)
+	likeRepository      repository.LikeRepository      = repository.NewLikeRepository(db)
+	subscribeRepository repository.SubscribeRepository = repository.NewSubscribeRepository(db)
 	// jwtService is a global variable that represents the jwt service (json web token)
 	jwtService helper.JWTService = helper.NewJWTService()
 	// Authentication service and controller
@@ -46,6 +47,9 @@ var (
 	// Like service and controller
 	likeService    service.LikeService       = service.NewLikeService(likeRepository)
 	likeController controller.LikeController = controller.NewLikeController(likeService, jwtService)
+	// Subscribe service and controller
+	subscribeService    service.SubscribeService       = service.NewSubscribeService(subscribeRepository)
+	subscribeController controller.SubscribeController = controller.NewSubscribeController(subscribeService, jwtService, topicService)
 )
 
 func main() {
@@ -90,7 +94,7 @@ func main() {
 		commentRoutes.GET("/post/:id", commentController.FindCommentByPostID)
 	}
 
-	followerRoutes := r.Group("api/followers", middleware.AuthorizeJWT(jwtService))
+	followerRoutes := r.Group("api/user/followers", middleware.AuthorizeJWT(jwtService))
 	{
 		followerRoutes.GET("/:id", followerController.AllFollowers)
 		followerRoutes.GET("/following/:id", followerController.AllFollowing)
@@ -105,8 +109,15 @@ func main() {
 		likeRoutes.DELETE("/:id", likeController.UnLike)
 		likeRoutes.GET("/count/:id", likeController.CountLikes)
 	}
+	subscribeRoutes := r.Group("api/subscribes", middleware.AuthorizeJWT(jwtService))
+	{
+		subscribeRoutes.GET("/:id", subscribeController.AllSubscribes)
+		subscribeRoutes.POST("/:id", subscribeController.Subscribe)
+		subscribeRoutes.DELETE("/:id", subscribeController.Unsubscribe)
+		subscribeRoutes.GET("/count/:id", subscribeController.CountSubscribes)
+	}
 
-	err := r.Run()
+	err := r.Run(":8080")
 	if err != nil {
 		return
 	}
