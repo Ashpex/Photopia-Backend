@@ -29,7 +29,7 @@ func (db *likeConnection) Like(like entity.Like) entity.Like {
 }
 
 func (db *likeConnection) Unlike(like entity.Like) {
-	db.connection.Delete(&like).Where("post_id = ? AND user_id = ?", like.PostID, like.UserID)
+	db.connection.Where("post_id = ? AND user_id = ?", like.PostID, like.UserID).Delete(&like)
 	db.connection.Preload("User").Find(&like)
 }
 

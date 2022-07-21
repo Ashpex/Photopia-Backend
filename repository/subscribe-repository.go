@@ -3,6 +3,7 @@ package repository
 import (
 	"example.com/gallery/entity"
 	"gorm.io/gorm"
+	"log"
 )
 
 type SubscribeRepository interface {
@@ -29,8 +30,9 @@ func (db *subscribeConnection) Subscribe(subscribe entity.Subscribe) entity.Subs
 }
 
 func (db *subscribeConnection) Unsubscribe(subscribe entity.Subscribe) {
-	db.connection.Delete(&subscribe).Where("topic_id = ? AND user_id = ?", subscribe.TopicID, subscribe.UserID)
+	db.connection.Where("topic_id = ? AND user_id = ?", subscribe.TopicID, subscribe.UserID).Delete(&subscribe)
 	db.connection.Preload("User").Find(&subscribe)
+	log.Println("Unsubscribe", subscribe)
 }
 
 func (db *subscribeConnection) AllSubscribes(topicID uint64) []entity.Subscribe {

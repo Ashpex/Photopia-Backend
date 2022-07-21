@@ -71,11 +71,13 @@ func (c *subscribeController) Unsubscribe(context *gin.Context) {
 	if err != nil {
 		response := helper.BuildErrorResponse("Failed to get the id", "No param topic_id were found", helper.EmptyObj{})
 		context.JSON(http.StatusBadRequest, response)
+		return
 	}
 	var topic entity.Topic = c.topicService.FindByID(topicId)
 	if (topic == entity.Topic{}) {
-		res := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
+		res := helper.BuildErrorResponse("Data not found", "No topic with given id", helper.EmptyObj{})
 		context.JSON(http.StatusNotFound, res)
+		return
 	} else {
 		subscribe.TopicID = topicId
 		authHeader := context.GetHeader("Authorization")
