@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -25,13 +26,15 @@ type PostController interface {
 
 type postController struct {
 	postService service.PostService
+	likeService service.LikeService
 	jwtService  helper.JWTService
 }
 
 //NewPostController create a new instances of PostController
-func NewPostController(postServ service.PostService, jwtServ helper.JWTService) PostController {
+func NewPostController(postServ service.PostService, jwtServ helper.JWTService, likeServ service.LikeService) PostController {
 	return &postController{
 		postService: postServ,
+		likeService: likeServ,
 		jwtService:  jwtServ,
 	}
 }
@@ -61,12 +64,13 @@ func (c *postController) FindByID(context *gin.Context) {
 }
 
 func (c *postController) FindByTopicID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("topic_id"), 0, 0)
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 	if err != nil {
 		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
+	log.Println("id: ", id)
 
 	var posts []entity.Post = c.postService.FindByTopicID(id)
 	response := helper.BuildResponse(true, "Get all posts successfully", posts)
@@ -165,7 +169,32 @@ func (c *postController) getUserIDByToken(token string) string {
 	return id
 }
 func (c *postController) GetTrendingPosts(context *gin.Context) {
-	var posts []entity.Post = c.postService.GetTrendingPosts()
-	response := helper.BuildResponse(true, "Get all trending posts successfully", posts)
+	var posts []entity.Post = c.postService.All()
+	var trendingPosts []entity.Post
+	for _, post := range posts {
+		post.LikesCount = c.likeService.CountLike(post.ID)
+		if post.LikesCount >= 1 {
+			trendingPosts = append(trendingPosts, post)
+		}
+	}
+	response := helper.BuildResponse(true, "Get all trending posts successfully", trendingPosts)
 	context.JSON(http.StatusOK, response)
+}
+
+var (
+	photoPath        = "static/media/photo/"
+	allowedFileTypes = []string{
+		"image/png",
+		"image/jpeg",
+		"image/gif",
+	}
+)
+
+func isAllowedFileTypes(fileType string) bool {
+	for _, value := range allowedFileTypes {
+		if fileType == value {
+			return true
+		}
+	}
+	return false
 }

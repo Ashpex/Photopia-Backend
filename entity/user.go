@@ -8,6 +8,8 @@ type User struct {
 	Password  string      `gorm:"->;<-;not null" json:"-" form:"password"`
 	Token     string      `gorm:"-" json:"token,omitempty"`
 	Posts     *[]Post     `json:"posts,omitempty"`
+	Comments  *[]Comment  `json:"comments,omitempty"`
+	Likes     *[]Like     `json:"likes,omitempty"`
 	Followers *[]Follower `json:"followers,omitempty"`
 	Following *[]Follower `json:"following,omitempty"`
 }

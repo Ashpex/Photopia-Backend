@@ -3,6 +3,7 @@ package repository
 import (
 	"example.com/gallery/entity"
 	"gorm.io/gorm"
+	"log"
 )
 
 type CommentRepository interface {
@@ -25,10 +26,10 @@ func NewCommentRepository(databaseConnection *gorm.DB) CommentRepository {
 }
 
 func (db *commentConnection) InsertComment(comment entity.Comment) entity.Comment {
+	log.Println(comment)
 	db.connection.Save(&comment)
 	db.connection.Preload("User").Find(&comment)
 	db.connection.Preload("Post").Find(&comment)
-	db.connection.Preload("Comments").Find(&comment)
 	return comment
 }
 

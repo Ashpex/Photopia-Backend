@@ -7,6 +7,7 @@ type PostUpdateDTO struct {
 	Description string `json:"description" form:"description" binding:"required"`
 	UserID      uint64 `json:"user_id,omitempty"  form:"user_id,omitempty"`
 	TopicID     uint64 `json:"topic_id,omitempty" form:"topic_id,omitempty"`
+
 	//File        *multipart.FileHeader `json:"file,omitempty" form:"file,omitempty"`
 
 	//PhotoUrl    string   `json:"photo_url" form:"photo_url" binding:"required"`

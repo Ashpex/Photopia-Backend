@@ -7,8 +7,6 @@ type CommentUpdateDTO struct {
 	PostID  uint64 `json:"post_id,omitempty" form:"post_id,omitempty"`
 	UserID  uint64 `json:"user_id,omitempty" form:"user_id,omitempty"`
 }
-type name struct {
-}
 
 // CommentCreateDTO is used by client when POST create new comment
 type CommentCreateDTO struct {

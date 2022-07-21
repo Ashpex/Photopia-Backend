@@ -34,7 +34,7 @@ var (
 
 	// Post service and controller
 	postService    service.PostService       = service.NewPostService(postRepository)
-	postController controller.PostController = controller.NewPostController(postService, jwtService)
+	postController controller.PostController = controller.NewPostController(postService, jwtService, likeService)
 	// Topic service and controller
 	topicService    service.TopicService       = service.NewTopicService(topicRepository)
 	topicController controller.TopicController = controller.NewTopicController(topicService, jwtService)
@@ -76,6 +76,7 @@ func main() {
 		postRoutes.PUT("/:id", postController.Update)
 		postRoutes.DELETE("/:id", postController.Delete)
 		postRoutes.GET("/topic/:id", postController.FindByTopicID)
+		//postRoutes.GET("?topic=:id", postController.FindByTopicID)
 		postRoutes.GET("/trending", postController.GetTrendingPosts)
 	}
 	topicRoutes := r.Group("api/topics")
