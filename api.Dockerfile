@@ -1,10 +1,3 @@
-FROM nginx:alpine as nginx
-
-WORKDIR /app
-
-COPY . .
-
-COPY ./config/nginx.conf /etc/nginx/nginx.conf
 
 FROM golang:latest as builder
 

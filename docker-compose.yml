@@ -47,7 +47,22 @@ services:
     # This is what makes the hot reloading work inside a Docker container
     volumes:
       - .:/app/
-
+  nginx:
+    container_name: "nginx"
+    image: nginx
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
+    #volumes:
+    #  - .:/etc/nginx/conf.d/
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    restart: always
+    networks:
+      - default
+    command: ["/usr/sbin/nginx", "-g", "daemon off;"]
 
 networks:
   default:

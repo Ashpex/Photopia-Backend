@@ -23,22 +23,26 @@ type PostController interface {
 	Delete(context *gin.Context)
 	GetTrendingPosts(context *gin.Context)
 	GetFollowingPosts(context *gin.Context)
+	GetPostsFromSubscribedTopic(context *gin.Context)
+	Home(context *gin.Context)
 }
 
 type postController struct {
-	postService   service.PostService
-	likeService   service.LikeService
-	followService service.FollowService
-	jwtService    helper.JWTService
+	postService      service.PostService
+	likeService      service.LikeService
+	followService    service.FollowService
+	subscribeService service.SubscribeService
+	jwtService       helper.JWTService
 }
 
 //NewPostController create a new instances of PostController
-func NewPostController(postServ service.PostService, jwtServ helper.JWTService, likeServ service.LikeService, followerServ service.FollowService) PostController {
+func NewPostController(postServ service.PostService, jwtServ helper.JWTService, likeServ service.LikeService, followerServ service.FollowService, subscribeServ service.SubscribeService) PostController {
 	return &postController{
-		postService:   postServ,
-		likeService:   likeServ,
-		followService: followerServ,
-		jwtService:    jwtServ,
+		postService:      postServ,
+		likeService:      likeServ,
+		followService:    followerServ,
+		subscribeService: subscribeServ,
+		jwtService:       jwtServ,
 	}
 }
 
@@ -208,7 +212,7 @@ func (c *postController) GetFollowingPosts(context *gin.Context) {
 	UserID := fmt.Sprintf("%v", claims["user_id"])
 	UserIDInt, err := strconv.ParseUint(UserID, 10, 64)
 	if err != nil {
-		panic(err.Error())
+		fmt.Sprintf("%v", err.Error())
 	}
 	var followingUser []entity.Follower = c.followService.AllFollowing(UserIDInt)
 	for _, follower := range followingUser {
@@ -219,6 +223,79 @@ func (c *postController) GetFollowingPosts(context *gin.Context) {
 		}
 	}
 	response := helper.BuildResponse(true, "Get all following posts successfully", followingPosts)
+	context.JSON(http.StatusOK, response)
+}
+
+func (c *postController) GetPostsFromSubscribedTopic(context *gin.Context) {
+	var posts []entity.Post = c.postService.All()
+	var subscribedTopicPosts []entity.Post
+	authHeader := context.GetHeader("Authorization")
+	token, err := c.jwtService.ValidateToken(authHeader)
+	if err != nil {
+		fmt.Sprintf("%v", err.Error())
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	UserID := fmt.Sprintf("%v", claims["user_id"])
+	UserIDInt, err := strconv.ParseUint(UserID, 10, 64)
+	if err != nil {
+		fmt.Sprintf("%v", err.Error())
+	}
+	var subscribedTopics []entity.Subscribe = c.subscribeService.AllSubscribesByUser(UserIDInt)
+	for _, subscribedTopic := range subscribedTopics {
+		for _, post := range posts {
+			if post.TopicID == subscribedTopic.TopicID {
+				subscribedTopicPosts = append(subscribedTopicPosts, post)
+			}
+		}
+	}
+	response := helper.BuildResponse(true, "Get all subscribed topic posts successfully", subscribedTopicPosts)
+	context.JSON(http.StatusOK, response)
+}
+
+func (c *postController) Home(context *gin.Context) {
+	var homePosts []entity.Post
+	var followingPosts []entity.Post
+	var trendingPosts []entity.Post
+	var subscribedTopicPosts []entity.Post
+	var posts []entity.Post = c.postService.All()
+	authHeader := context.GetHeader("Authorization")
+	token, err := c.jwtService.ValidateToken(authHeader)
+	if err != nil {
+		fmt.Sprintf("%v", err.Error())
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	UserID := fmt.Sprintf("%v", claims["user_id"])
+	UserIDInt, err := strconv.ParseUint(UserID, 10, 64)
+	if err != nil {
+		fmt.Sprintf("%v", err.Error())
+	}
+	var followingUser []entity.Follower = c.followService.AllFollowing(UserIDInt)
+	for _, follower := range followingUser {
+		for _, post := range posts {
+			if post.UserID == follower.UserID {
+				followingPosts = append(followingPosts, post)
+			}
+		}
+	}
+	var subscribedTopics []entity.Subscribe = c.subscribeService.AllSubscribesByUser(UserIDInt)
+	for _, subscribedTopic := range subscribedTopics {
+		for _, post := range posts {
+			if post.TopicID == subscribedTopic.TopicID {
+				subscribedTopicPosts = append(subscribedTopicPosts, post)
+			}
+		}
+	}
+
+	for _, post := range posts {
+		post.LikesCount = c.likeService.CountLike(post.ID)
+		if post.LikesCount >= 1 {
+			trendingPosts = append(trendingPosts, post)
+		}
+	}
+	homePosts = append(homePosts, followingPosts...)
+	homePosts = append(homePosts, subscribedTopicPosts...)
+	homePosts = append(homePosts, trendingPosts...)
+	response := helper.BuildResponse(true, "Get all posts successfully", homePosts)
 	context.JSON(http.StatusOK, response)
 }
 

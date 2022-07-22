@@ -13,6 +13,7 @@ type SubscribeService interface {
 	Unsubscribe(unsubscribeDTO entity.Subscribe)
 	AllSubscribes(topicID uint64) []entity.Subscribe
 	CountSubscribes(topicID uint64) int
+	AllSubscribesByUser(userID uint64) []entity.Subscribe
 }
 
 type subscribeService struct {
@@ -50,4 +51,8 @@ func (service *subscribeService) AllSubscribes(topicID uint64) []entity.Subscrib
 
 func (service *subscribeService) CountSubscribes(topicID uint64) int {
 	return service.subscribeRepository.CountSubscribes(topicID)
+}
+
+func (service *subscribeService) AllSubscribesByUser(userID uint64) []entity.Subscribe {
+	return service.subscribeRepository.AllSubscribesByUser(userID)
 }
