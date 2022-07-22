@@ -25,13 +25,19 @@ func NewSubscribeRepository(databaseConnection *gorm.DB) SubscribeRepository {
 }
 
 func (db *subscribeConnection) Subscribe(subscribe entity.Subscribe) entity.Subscribe {
-	db.connection.Save(&subscribe)
+	err := db.connection.Save(&subscribe)
+	if err != nil {
+		log.Println(err)
+	}
 	db.connection.Preload("User").Find(&subscribe)
 	return subscribe
 }
 
 func (db *subscribeConnection) Unsubscribe(subscribe entity.Subscribe) {
-	db.connection.Where("topic_id = ? AND user_id = ?", subscribe.TopicID, subscribe.UserID).Delete(&subscribe)
+	err := db.connection.Where("topic_id = ? AND user_id = ?", subscribe.TopicID, subscribe.UserID).Delete(&subscribe)
+	if err != nil {
+		log.Println(err)
+	}
 	db.connection.Preload("User").Find(&subscribe)
 	log.Println("Unsubscribe", subscribe)
 }

@@ -4,6 +4,7 @@ import (
 	"example.com/gallery/entity"
 	"example.com/gallery/helper"
 	"gorm.io/gorm"
+	"log"
 )
 
 type PostRepository interface {
@@ -29,7 +30,10 @@ func NewPostRepository(databaseConnection *gorm.DB) PostRepository {
 }
 
 func (db *postConnection) InsertPost(post entity.Post) entity.Post {
-	db.connection.Save(&post)
+	err := db.connection.Save(&post)
+	if err != nil {
+		log.Println(err)
+	}
 	db.connection.Preload("User").Find(&post)
 	db.connection.Preload("Topic").Find(&post)
 	db.connection.Preload("Comments").Find(&post)
@@ -38,7 +42,10 @@ func (db *postConnection) InsertPost(post entity.Post) entity.Post {
 }
 
 func (db *postConnection) UpdatePost(post entity.Post) entity.Post {
-	db.connection.Save(&post)
+	err := db.connection.Save(&post)
+	if err != nil {
+		log.Println(err)
+	}
 	db.connection.Preload("User").Find(&post)
 	db.connection.Preload("Topic").Find(&post)
 	db.connection.Preload("Comments").Find(&post)
@@ -46,7 +53,11 @@ func (db *postConnection) UpdatePost(post entity.Post) entity.Post {
 }
 
 func (db *postConnection) DeletePost(post entity.Post) {
-	db.connection.Delete(&post)
+	err := db.connection.Delete(&post)
+
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (db *postConnection) FindPostByID(postID uint64) entity.Post {

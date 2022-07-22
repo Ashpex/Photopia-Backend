@@ -27,9 +27,18 @@ func NewCommentRepository(databaseConnection *gorm.DB) CommentRepository {
 
 func (db *commentConnection) InsertComment(comment entity.Comment) entity.Comment {
 	log.Println(comment)
-	db.connection.Save(&comment)
-	db.connection.Preload("User").Find(&comment)
-	db.connection.Preload("Post").Find(&comment)
+	err := db.connection.Save(&comment)
+	if err != nil {
+		log.Println(err)
+	}
+	err = db.connection.Preload("User").Find(&comment)
+	if err != nil {
+		log.Println(err)
+	}
+	err = db.connection.Preload("Post").Find(&comment)
+	if err != nil {
+		log.Println(err)
+	}
 	return comment
 }
 
@@ -41,24 +50,36 @@ func (db *commentConnection) UpdateComment(comment entity.Comment) entity.Commen
 }
 
 func (db *commentConnection) DeleteComment(comment entity.Comment) {
-	db.connection.Delete(&comment)
+	err := db.connection.Delete(&comment)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (db *commentConnection) AllComment() []entity.Comment {
 	var comments []entity.Comment
-	db.connection.Preload("Comment").Find(&comments)
+	err := db.connection.Preload("Comment").Find(&comments)
+	if err != nil {
+		log.Println(err)
+	}
 	return comments
 }
 
 func (db *commentConnection) FindCommentByID(commentID uint64) entity.Comment {
 	var comment entity.Comment
-	db.connection.Preload("Post").Find(&comment, commentID)
+	err := db.connection.Preload("Post").Find(&comment, commentID)
+	if err != nil {
+		log.Println(err)
+	}
 	return comment
 }
 
 func (db *commentConnection) FindCommentByPostID(postID uint64) []entity.Comment {
 	var comments []entity.Comment
 	//db.connection.Preload("Post").Find(&comments, "post_id = ?", postID)
-	db.connection.Where("post_id = ?", postID).Find(&comments)
+	err := db.connection.Where("post_id = ?", postID).Find(&comments)
+	if err != nil {
+		log.Println(err)
+	}
 	return comments
 }

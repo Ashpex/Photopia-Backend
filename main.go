@@ -119,7 +119,11 @@ func main() {
 		subscribeRoutes.DELETE("/:id", subscribeController.Unsubscribe)
 		subscribeRoutes.GET("/count/:id", subscribeController.CountSubscribes)
 	}
+	//prometheusRoute := r.Group("/metrics")
+	//{
+	//	prometheusRoute.GET("/", gin.WrapH(promhttp.Handler()))
 
+	//}
 	err := r.Run(":8080")
 	if err != nil {
 		return

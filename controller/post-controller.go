@@ -112,13 +112,13 @@ func (c *postController) Insert(context *gin.Context) {
 		}
 
 		postCreateDTO.File = file
-		err = context.SaveUploadedFile(postCreateDTO.File, "static/"+postCreateDTO.File.Filename)
+		err = context.SaveUploadedFile(postCreateDTO.File, photoPath+postCreateDTO.File.Filename)
 		if err != nil {
 			response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
 			context.JSON(http.StatusBadRequest, response)
 			return
 		}
-		postCreateDTO.ImagePath = "static/" + postCreateDTO.File.Filename
+		postCreateDTO.ImagePath = photoPath + postCreateDTO.File.Filename
 
 		result := c.postService.Insert(postCreateDTO)
 		response := helper.BuildResponse(true, "Insert post sucessfully", result)
@@ -303,7 +303,7 @@ func (c *postController) Home(context *gin.Context) {
 }
 
 var (
-	photoPath        = "static/media/photo/"
+	photoPath        = "static/"
 	allowedFileTypes = []string{
 		"image/png",
 		"image/jpeg",

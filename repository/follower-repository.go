@@ -3,6 +3,7 @@ package repository
 import (
 	"example.com/gallery/entity"
 	"gorm.io/gorm"
+	"log"
 )
 
 type FollowerRepository interface {
@@ -23,7 +24,10 @@ func NewFollowerRepository(databaseConnection *gorm.DB) FollowerRepository {
 }
 
 func (db *followerConnection) Follow(follower entity.Follower) entity.Follower {
-	db.connection.Save(&follower)
+	err := db.connection.Save(&follower)
+	if err != nil {
+		log.Println(err)
+	}
 	db.connection.Preload("User").Find(&follower)
 	db.connection.Preload("Followers").Find(&follower)
 	return follower

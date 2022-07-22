@@ -3,6 +3,7 @@ package repository
 import (
 	"example.com/gallery/entity"
 	"gorm.io/gorm"
+	"log"
 )
 
 type TopicRepository interface {
@@ -24,7 +25,10 @@ func NewTopicRepository(databaseConnection *gorm.DB) TopicRepository {
 }
 
 func (db *topicConnection) InsertTopic(topic entity.Topic) entity.Topic {
-	db.connection.Save(&topic)
+	err := db.connection.Save(&topic)
+	if err != nil {
+		log.Println(err)
+	}
 	return topic
 }
 
@@ -34,7 +38,10 @@ func (db *topicConnection) UpdateTopic(topic entity.Topic) entity.Topic {
 }
 
 func (db *topicConnection) DeleteTopic(topic entity.Topic) {
-	db.connection.Delete(&topic)
+	err := db.connection.Delete(&topic)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (db *topicConnection) AllTopic() []entity.Topic {

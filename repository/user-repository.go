@@ -64,7 +64,10 @@ func (db *userConnection) IsDuplicateEmail(email string) (tx *gorm.DB) {
 
 func (db *userConnection) FindByEmail(email string) entity.User {
 	var user entity.User
-	db.connection.Where("email = ?", email).Take(&user)
+	err := db.connection.Where("email = ?", email).Take(&user)
+	if err != nil {
+		log.Println(err)
+	}
 	return user
 }
 
