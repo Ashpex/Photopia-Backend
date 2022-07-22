@@ -15,6 +15,7 @@ type UserRepository interface {
 	VerifyCredential(email string, password string) interface{}
 	IsDuplicateEmail(email string) (tx *gorm.DB)
 	FindByEmail(email string) entity.User
+	FindByUserID(userID string) (entity.User, error)
 	ProfileUser(userID string) entity.User
 }
 
@@ -69,6 +70,15 @@ func (db *userConnection) FindByEmail(email string) entity.User {
 		log.Println(err)
 	}
 	return user
+}
+
+func (c *userConnection) FindByUserID(userID string) (entity.User, error) {
+	var user entity.User
+	res := c.connection.Where("id = ?", userID).Take(&user)
+	if res.Error != nil {
+		return user, res.Error
+	}
+	return user, nil
 }
 
 func (db *userConnection) ProfileUser(userID string) entity.User {

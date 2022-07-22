@@ -2,9 +2,11 @@ package helper
 
 import (
 	"context"
+	"example.com/gallery/repository"
 	"fmt"
 	"github.com/golang-jwt/jwt"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -12,6 +14,7 @@ import (
 type JWTService interface {
 	GenerateToken(userID string) string
 	ValidateToken(token string) (*jwt.Token, error)
+	ExtractUser(token string, userRepo repository.UserRepository) interface{}
 }
 
 type jwtCustomClaim struct {
@@ -74,4 +77,17 @@ func (j *jwtService) getUserIDByToken(token string, ctx context.Context) string 
 	claims := aToken.Claims.(jwt.MapClaims)
 	id := fmt.Sprintf("%v", claims["user_id"])
 	return id
+}
+
+func (j *jwtService) ExtractUser(token string, userRepo repository.UserRepository) interface{} {
+	t, _ := j.ValidateToken(token)
+
+	if t == nil {
+		return nil
+	}
+
+	fUserID := t.Claims.(jwt.MapClaims)["user_id"].(float64)
+	userID := strconv.FormatFloat(fUserID, 'E', -1, 64)
+	user, _ := userRepo.FindByUserID(userID)
+	return user
 }

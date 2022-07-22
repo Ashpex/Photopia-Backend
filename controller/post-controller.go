@@ -4,6 +4,7 @@ import (
 	"example.com/gallery/dto"
 	"example.com/gallery/entity"
 	"example.com/gallery/helper"
+	"example.com/gallery/pagination"
 	"example.com/gallery/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -25,7 +26,6 @@ type PostController interface {
 	GetFollowingPosts(context *gin.Context)
 	GetPostsFromSubscribedTopic(context *gin.Context)
 	Home(context *gin.Context)
-	List(context *gin.Context)
 }
 
 type postController struct {
@@ -46,15 +46,10 @@ func NewPostController(postServ service.PostService, jwtServ helper.JWTService, 
 		jwtService:       jwtServ,
 	}
 }
-func (c *postController) List(context *gin.Context) {
-	var pagination helper.Pagination
-	var test *helper.Pagination
-	test = c.postService.List(pagination)
-	response := helper.BuildResponse(true, "Get all posts successfully", test)
-	context.JSON(http.StatusOK, response)
-}
+
 func (c *postController) All(context *gin.Context) {
-	var posts []entity.Post = c.postService.All()
+	pagination := pagination.GeneratePaginationFromRequest(context)
+	var posts []entity.Post = c.postService.All(pagination)
 	response := helper.BuildResponse(true, "Get all posts successfully", posts)
 	context.JSON(http.StatusOK, response)
 }
@@ -198,7 +193,8 @@ func (c *postController) getUserIDByToken(token string) string {
 	return id
 }
 func (c *postController) GetTrendingPosts(context *gin.Context) {
-	var posts []entity.Post = c.postService.All()
+	pagination := pagination.GeneratePaginationFromRequest(context)
+	var posts []entity.Post = c.postService.All(pagination)
 	var trendingPosts []entity.Post
 	for _, post := range posts {
 		post.LikesCount = c.likeService.CountLike(post.ID)
@@ -211,7 +207,8 @@ func (c *postController) GetTrendingPosts(context *gin.Context) {
 }
 
 func (c *postController) GetFollowingPosts(context *gin.Context) {
-	var posts []entity.Post = c.postService.All()
+	pagination := pagination.GeneratePaginationFromRequest(context)
+	var posts []entity.Post = c.postService.All(pagination)
 	var followingPosts []entity.Post
 	authHeader := context.GetHeader("Authorization")
 	token, err := c.jwtService.ValidateToken(authHeader)
@@ -237,7 +234,8 @@ func (c *postController) GetFollowingPosts(context *gin.Context) {
 }
 
 func (c *postController) GetPostsFromSubscribedTopic(context *gin.Context) {
-	var posts []entity.Post = c.postService.All()
+	pagination := pagination.GeneratePaginationFromRequest(context)
+	var posts []entity.Post = c.postService.All(pagination)
 	var subscribedTopicPosts []entity.Post
 	authHeader := context.GetHeader("Authorization")
 	token, err := c.jwtService.ValidateToken(authHeader)
@@ -267,7 +265,8 @@ func (c *postController) Home(context *gin.Context) {
 	var followingPosts []entity.Post
 	var trendingPosts []entity.Post
 	var subscribedTopicPosts []entity.Post
-	var posts []entity.Post = c.postService.All()
+	pagination := pagination.GeneratePaginationFromRequest(context)
+	var posts []entity.Post = c.postService.All(pagination)
 	authHeader := context.GetHeader("Authorization")
 	token, err := c.jwtService.ValidateToken(authHeader)
 	if err != nil {

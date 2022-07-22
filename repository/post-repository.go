@@ -2,21 +2,19 @@ package repository
 
 import (
 	"example.com/gallery/entity"
-	"example.com/gallery/helper"
+	"example.com/gallery/pagination"
 	"gorm.io/gorm"
 	"log"
-	"math"
 )
 
 type PostRepository interface {
 	InsertPost(post entity.Post) entity.Post
 	UpdatePost(post entity.Post) entity.Post
 	DeletePost(post entity.Post)
-	AllPost() []entity.Post
+	AllPost(pagination pagination.Pagination) []entity.Post
 	FindPostByID(postID uint64) entity.Post
 	FindPostByTopicID(topicID uint64) []entity.Post
-	GetTrendingPosts() []entity.Post
-	List(pagination helper.Pagination) *helper.Pagination
+	GetTrendingPosts(pagination pagination.Pagination) []entity.Post
 }
 
 type postConnection struct {
@@ -67,10 +65,15 @@ func (db *postConnection) FindPostByID(postID uint64) entity.Post {
 	return post
 }
 
-func (db *postConnection) AllPost() []entity.Post {
+func (db *postConnection) AllPost(pagination pagination.Pagination) []entity.Post {
 	var posts []entity.Post
-
-	db.connection.Preload("User").Find(&posts)
+	offset := (pagination.Page - 1) * pagination.Limit
+	queryBuilder := db.connection.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	result := queryBuilder.Find(&posts)
+	if result.Error != nil {
+		log.Println(result.Error)
+		return nil
+	}
 	return posts
 }
 
@@ -80,26 +83,15 @@ func (db *postConnection) FindPostByTopicID(topicID uint64) []entity.Post {
 	return posts
 }
 
-func (db *postConnection) GetTrendingPosts() []entity.Post {
+func (db *postConnection) GetTrendingPosts(pagination pagination.Pagination) []entity.Post {
 	var posts []entity.Post
-	db.connection.Preload("User").Find(&posts, "likes_count > ?", 0)
-	return posts
-}
-
-func (db *postConnection) List(pagination helper.Pagination) *helper.Pagination {
-	var posts []*entity.Post
-	db.connection.Scopes(paginate(posts, &pagination, db.connection)).Find(&posts)
-	pagination.Rows = posts
-	return &pagination
-}
-
-func paginate(value interface{}, pagination *helper.Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
-	var totalRows int64
-	db.Model(value).Count(&totalRows)
-	pagination.TotalRows = totalRows
-	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
-	pagination.TotalPages = totalPages
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
+	offset := (pagination.Page - 1) * pagination.Limit
+	queryBuilder := db.connection.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	result := queryBuilder.Preload("User").Find(&posts, "likes_count > ?", 0)
+	if result.Error != nil {
+		log.Println(result.Error)
+		return nil
 	}
+	//db.connection.Preload("User").Find(&posts, "likes_count > ?", 0)
+	return posts
 }

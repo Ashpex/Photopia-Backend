@@ -3,7 +3,7 @@ package service
 import (
 	"example.com/gallery/dto"
 	"example.com/gallery/entity"
-	"example.com/gallery/helper"
+	"example.com/gallery/pagination"
 	"example.com/gallery/repository"
 	"fmt"
 	"github.com/mashingan/smapping"
@@ -12,14 +12,13 @@ import (
 
 // PostService is a contract about something that this service can do
 type PostService interface {
-	List(pagination helper.Pagination) *helper.Pagination
 	Insert(post dto.PostCreateDTO) entity.Post
 	Update(post dto.PostUpdateDTO) entity.Post
 	Delete(post entity.Post)
-	All() []entity.Post
+	All(pagination pagination.Pagination) []entity.Post
 	FindByID(ID uint64) entity.Post
 	FindByTopicID(topicID uint64) []entity.Post
-	GetTrendingPosts() []entity.Post
+	GetTrendingPosts(pagination pagination.Pagination) []entity.Post
 	IsAllowedToEdit(userID string, postID uint64) bool
 }
 
@@ -33,10 +32,6 @@ func NewPostService(postRepo repository.PostRepository) PostService {
 	return &postService{
 		postRepository: postRepo,
 	}
-}
-
-func (service *postService) List(pagination helper.Pagination) *helper.Pagination {
-	return service.postRepository.List(pagination)
 }
 
 // Insert function creates a new post
@@ -65,8 +60,8 @@ func (service *postService) Delete(post entity.Post) {
 	service.postRepository.DeletePost(post)
 }
 
-func (service *postService) All() []entity.Post {
-	return service.postRepository.AllPost()
+func (service *postService) All(pagination pagination.Pagination) []entity.Post {
+	return service.postRepository.AllPost(pagination)
 }
 
 func (service *postService) FindByID(ID uint64) entity.Post {
@@ -77,8 +72,8 @@ func (service *postService) FindByTopicID(topicID uint64) []entity.Post {
 	return service.postRepository.FindPostByTopicID(topicID)
 }
 
-func (service *postService) GetTrendingPosts() []entity.Post {
-	return service.postRepository.GetTrendingPosts()
+func (service *postService) GetTrendingPosts(pagination pagination.Pagination) []entity.Post {
+	return service.postRepository.GetTrendingPosts(pagination)
 }
 
 func (service *postService) IsAllowedToEdit(userID string, postID uint64) bool {

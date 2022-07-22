@@ -7,6 +7,7 @@ import (
 	"example.com/gallery/middleware"
 	"example.com/gallery/repository"
 	"example.com/gallery/service"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"log"
@@ -71,7 +72,6 @@ func main() {
 
 	postRoutes := r.Group("api/posts", middleware.AuthorizeJWT(jwtService))
 	{
-		postRoutes.GET("/list", postController.List)
 		postRoutes.GET("/", postController.All)
 		postRoutes.POST("/", postController.Insert)
 		postRoutes.GET("/:id", postController.FindByID)
@@ -128,6 +128,7 @@ func main() {
 	//}
 	err := r.Run(":8080")
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 }
