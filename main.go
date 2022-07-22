@@ -56,6 +56,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	defer config.CloseDB(db)
 	r := gin.Default()
+	r.Static("/static", "./static")
 	authRoutes := r.Group("api/auth")
 	{
 		authRoutes.POST("/login", authController.Login)
@@ -70,6 +71,7 @@ func main() {
 
 	postRoutes := r.Group("api/posts", middleware.AuthorizeJWT(jwtService))
 	{
+		postRoutes.GET("/list", postController.List)
 		postRoutes.GET("/", postController.All)
 		postRoutes.POST("/", postController.Insert)
 		postRoutes.GET("/:id", postController.FindByID)

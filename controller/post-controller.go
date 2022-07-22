@@ -25,6 +25,7 @@ type PostController interface {
 	GetFollowingPosts(context *gin.Context)
 	GetPostsFromSubscribedTopic(context *gin.Context)
 	Home(context *gin.Context)
+	List(context *gin.Context)
 }
 
 type postController struct {
@@ -45,7 +46,13 @@ func NewPostController(postServ service.PostService, jwtServ helper.JWTService, 
 		jwtService:       jwtServ,
 	}
 }
-
+func (c *postController) List(context *gin.Context) {
+	var pagination helper.Pagination
+	var test *helper.Pagination
+	test = c.postService.List(pagination)
+	response := helper.BuildResponse(true, "Get all posts successfully", test)
+	context.JSON(http.StatusOK, response)
+}
 func (c *postController) All(context *gin.Context) {
 	var posts []entity.Post = c.postService.All()
 	response := helper.BuildResponse(true, "Get all posts successfully", posts)

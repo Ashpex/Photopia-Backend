@@ -3,6 +3,7 @@ package service
 import (
 	"example.com/gallery/dto"
 	"example.com/gallery/entity"
+	"example.com/gallery/helper"
 	"example.com/gallery/repository"
 	"fmt"
 	"github.com/mashingan/smapping"
@@ -11,6 +12,7 @@ import (
 
 // PostService is a contract about something that this service can do
 type PostService interface {
+	List(pagination helper.Pagination) *helper.Pagination
 	Insert(post dto.PostCreateDTO) entity.Post
 	Update(post dto.PostUpdateDTO) entity.Post
 	Delete(post entity.Post)
@@ -31,6 +33,10 @@ func NewPostService(postRepo repository.PostRepository) PostService {
 	return &postService{
 		postRepository: postRepo,
 	}
+}
+
+func (service *postService) List(pagination helper.Pagination) *helper.Pagination {
+	return service.postRepository.List(pagination)
 }
 
 // Insert function creates a new post

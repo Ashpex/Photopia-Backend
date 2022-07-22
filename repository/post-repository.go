@@ -5,6 +5,7 @@ import (
 	"example.com/gallery/helper"
 	"gorm.io/gorm"
 	"log"
+	"math"
 )
 
 type PostRepository interface {
@@ -15,7 +16,7 @@ type PostRepository interface {
 	FindPostByID(postID uint64) entity.Post
 	FindPostByTopicID(topicID uint64) []entity.Post
 	GetTrendingPosts() []entity.Post
-	List(pagination helper.Pagination) (*helper.Pagination, error)
+	List(pagination helper.Pagination) *helper.Pagination
 }
 
 type postConnection struct {
@@ -68,6 +69,7 @@ func (db *postConnection) FindPostByID(postID uint64) entity.Post {
 
 func (db *postConnection) AllPost() []entity.Post {
 	var posts []entity.Post
+
 	db.connection.Preload("User").Find(&posts)
 	return posts
 }
@@ -84,8 +86,20 @@ func (db *postConnection) GetTrendingPosts() []entity.Post {
 	return posts
 }
 
-func (db *postConnection) List(pagination helper.Pagination) (*helper.Pagination, error) {
-	var posts []entity.Post
-	db.connection.Scopes(pagination.Paginate(posts, &pagination, db.connection)).Find(&posts)
-	return &pagination, nil
+func (db *postConnection) List(pagination helper.Pagination) *helper.Pagination {
+	var posts []*entity.Post
+	db.connection.Scopes(paginate(posts, &pagination, db.connection)).Find(&posts)
+	pagination.Rows = posts
+	return &pagination
+}
+
+func paginate(value interface{}, pagination *helper.Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
+	var totalRows int64
+	db.Model(value).Count(&totalRows)
+	pagination.TotalRows = totalRows
+	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
+	pagination.TotalPages = totalPages
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
+	}
 }

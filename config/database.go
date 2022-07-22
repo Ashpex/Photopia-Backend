@@ -26,6 +26,7 @@ func SetupDB() *gorm.DB {
 	//db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{DisableForeignKeyConstraintWhenMigrating: false})
+
 	if err != nil {
 		panic("Failed to create a connection to config")
 	}
