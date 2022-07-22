@@ -1,12 +1,12 @@
 package service
 
 import (
-	"example.com/gallery/dto"
-	"example.com/gallery/repository"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/dto"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/repository"
 	"log"
 
-	"example.com/gallery/entity"
 	"github.com/mashingan/smapping"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/entity"
 	"golang.org/x/crypto/bcrypt"
 )
 

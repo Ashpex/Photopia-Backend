@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"example.com/gallery/dto"
-	"example.com/gallery/helper"
-	"example.com/gallery/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/dto"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/helper"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/service"
 	"net/http"
 	"strconv"
 )

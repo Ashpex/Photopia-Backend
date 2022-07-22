@@ -1,14 +1,14 @@
 package controller
 
 import (
-	"example.com/gallery/dto"
-	"example.com/gallery/entity"
-	"example.com/gallery/helper"
-	"example.com/gallery/pagination"
-	"example.com/gallery/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/dto"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/entity"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/helper"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/pagination"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/service"
 	"log"
 	"net/http"
 	"strconv"

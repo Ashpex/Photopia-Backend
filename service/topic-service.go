@@ -1,10 +1,10 @@
 package service
 
 import (
-	"example.com/gallery/dto"
-	"example.com/gallery/entity"
-	"example.com/gallery/repository"
 	"github.com/mashingan/smapping"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/dto"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/entity"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/repository"
 	"log"
 )
 

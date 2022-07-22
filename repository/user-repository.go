@@ -3,7 +3,7 @@ package repository
 import (
 	"log"
 
-	"example.com/gallery/entity"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/entity"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )

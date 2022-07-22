@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"example.com/gallery/dto"
-	"example.com/gallery/entity"
-	"example.com/gallery/helper"
-	"example.com/gallery/service"
 	"github.com/gin-gonic/gin"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/dto"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/entity"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/helper"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/service"
 	"net/http"
 	"strconv"
 )

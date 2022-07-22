@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"example.com/gallery/entity"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/entity"
 	"gorm.io/gorm"
 	"log"
 )

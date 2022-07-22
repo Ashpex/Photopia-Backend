@@ -1,9 +1,9 @@
 package config
 
 import (
-	"example.com/gallery/entity"
 	"fmt"
 	"github.com/joho/godotenv"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/entity"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"os"

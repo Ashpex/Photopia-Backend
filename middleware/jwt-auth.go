@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"example.com/gallery/helper"
 	"github.com/gin-gonic/gin"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/helper"
 )
 
 //AuthorizeJWT validates the token user given, return 401 if not valid

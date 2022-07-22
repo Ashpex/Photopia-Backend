@@ -1,4 +1,4 @@
-module example.com/gallery
+module gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery
 
 go 1.16
 

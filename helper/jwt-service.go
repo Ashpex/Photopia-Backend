@@ -2,9 +2,9 @@ package helper
 
 import (
 	"context"
-	"example.com/gallery/repository"
 	"fmt"
 	"github.com/golang-jwt/jwt"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/repository"
 	"os"
 	"strconv"
 	"time"

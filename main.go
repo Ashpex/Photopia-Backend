@@ -1,14 +1,15 @@
 package main
 
 import (
-	"example.com/gallery/config"
-	"example.com/gallery/controller"
-	"example.com/gallery/helper"
-	"example.com/gallery/middleware"
-	"example.com/gallery/repository"
-	"example.com/gallery/service"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/config"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/controller"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/helper"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/middleware"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/repository"
+	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/service"
 	"gorm.io/gorm"
 	"log"
 )
@@ -121,11 +122,11 @@ func main() {
 		subscribeRoutes.DELETE("/:id", subscribeController.Unsubscribe)
 		subscribeRoutes.GET("/count/:id", subscribeController.CountSubscribes)
 	}
-	//prometheusRoute := r.Group("/metrics")
-	//{
-	//	prometheusRoute.GET("/", gin.WrapH(promhttp.Handler()))
+	prometheusRoute := r.Group("/metrics")
+	{
+		prometheusRoute.GET("/", gin.WrapH(promhttp.Handler()))
 
-	//}
+	}
 	err := r.Run(":8080")
 	if err != nil {
 		fmt.Println(err)
