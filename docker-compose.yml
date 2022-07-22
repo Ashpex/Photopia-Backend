@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   db:
-    container_name: "test_db"
+    container_name: "gallery-db"
     platform: linux/x86_64
     build:
       context: .
@@ -26,7 +26,7 @@ services:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password
   api:
-    container_name:  "gallery"
+    container_name:  "gallery-api"
     # we want to use the image which is build from our Dockerfile
     build:
       context: .

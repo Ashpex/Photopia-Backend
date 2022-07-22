@@ -97,26 +97,29 @@ func (c *postController) Insert(context *gin.Context) {
 		if err == nil {
 			postCreateDTO.UserID = convertedUserID
 		}
-		//Handle file upload
-		/*
-			file, err := context.FormFile("file")
-			if err != nil {
-				response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
-				context.JSON(http.StatusBadRequest, response)
-				return
-			}
-			fileType := file.Header.Get("Content-Type")
-			if !isAllowedFileTypes(fileType) {
-				response := helper.BuildErrorResponse("Failed to process request", "File type is not allowed", helper.EmptyObj{})
-				context.JSON(http.StatusBadRequest, response)
-			}
 
-			postCreateDTO.File = file
-			err = context.SaveUploadedFile(file, file.Filename)
-			if err != nil {
-				return
-			}
-		*/
+		//Handle file upload
+		file, err := context.FormFile("file")
+		if err != nil {
+			response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
+			context.JSON(http.StatusBadRequest, response)
+			return
+		}
+		fileType := file.Header.Get("Content-Type")
+		if !isAllowedFileTypes(fileType) {
+			response := helper.BuildErrorResponse("Failed to process request", "File type is not allowed", helper.EmptyObj{})
+			context.JSON(http.StatusBadRequest, response)
+		}
+
+		postCreateDTO.File = file
+		err = context.SaveUploadedFile(postCreateDTO.File, "static/"+postCreateDTO.File.Filename)
+		if err != nil {
+			response := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
+			context.JSON(http.StatusBadRequest, response)
+			return
+		}
+		postCreateDTO.ImagePath = "static/" + postCreateDTO.File.Filename
+
 		result := c.postService.Insert(postCreateDTO)
 		response := helper.BuildResponse(true, "Insert post sucessfully", result)
 		context.JSON(http.StatusCreated, response)
