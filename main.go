@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/config"
 	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/controller"
 	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/helper"
@@ -12,6 +12,7 @@ import (
 	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/service"
 	"gorm.io/gorm"
 	"log"
+	"net/http"
 )
 
 var (
@@ -123,14 +124,44 @@ func main() {
 		subscribeRoutes.DELETE("/:id", subscribeController.Unsubscribe)
 		subscribeRoutes.GET("/count/:id", subscribeController.CountSubscribes)
 	}
-	prometheusRoute := r.Group("/metrics")
-	{
-		prometheusRoute.GET("/", gin.WrapH(promhttp.Handler()))
 
-	}
+	prom := ginprometheus.NewPrometheus("gin", newCustomMetrics())
+	prom.Use(r)
+	r.GET("/test", func(c *gin.Context) {
+		c.String(http.StatusOK, "OK")
+	})
+
 	err := r.Run(":8080")
 	if err != nil {
 		fmt.Println(err)
 		return
+	}
+}
+func newCustomMetrics() []*ginprometheus.Metric {
+	return []*ginprometheus.Metric{
+		{
+			ID:          "1",
+			Name:        "metric_1",
+			Description: "Counter test metric",
+			Type:        "counter",
+		},
+		{
+			ID:          "2",
+			Name:        "metric_2",
+			Description: "Summary metric",
+			Type:        "summary",
+		},
+		{
+			ID:          "3",
+			Name:        "metric_3",
+			Description: "Gauge metric",
+			Type:        "gauge",
+		},
+		{
+			ID:          "4",
+			Name:        "metric_4",
+			Description: "Histogram test metric",
+			Type:        "histogram",
+		},
 	}
 }

@@ -10,7 +10,7 @@ scrape_configs:
   - job_name: 'database'
     static_configs:
       - targets: ['db:3306']
-
+      
   - job_name: 'api'
     metrics_path: /metrics
     static_configs:

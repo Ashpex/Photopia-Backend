@@ -72,19 +72,32 @@ services:
     image: prom/prometheus:latest
     ports:
       - 9090:9090
-    #command:
-    #  - --config.file=/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/etc/prometheus/console_libraries
+      - --web.console.templates=/etc/prometheus/consoles
+      - --storage.tsdb.retention.time=200h
+      - --web.enable-lifecycle
     volumes:
+      - ./monitor/prometheus:/etc/prometheus
+      #- prometheus:/prometheus
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-#    depends_on:
-#      - cadvisor
+    depends_on:
+      - api
+      - db
   grafana:
     container_name: Grafana
     image: grafana/grafana
     ports:
       - 4000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - ./data:/var/lib/grafana
+      - ./monitor/grafana/provisioning:/etc/grafana/provisioning
     restart: always
     depends_on:
       - prometheus
