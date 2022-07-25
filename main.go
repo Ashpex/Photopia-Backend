@@ -59,6 +59,8 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	defer config.CloseDB(db)
 	r := gin.Default()
+	prom := ginprometheus.NewPrometheus("gin", newCustomMetrics())
+	prom.Use(r)
 	r.Static("/static", "./static")
 	authRoutes := r.Group("api/auth")
 	{
@@ -125,8 +127,6 @@ func main() {
 		subscribeRoutes.GET("/count/:id", subscribeController.CountSubscribes)
 	}
 
-	prom := ginprometheus.NewPrometheus("gin", newCustomMetrics())
-	prom.Use(r)
 	r.GET("/test", func(c *gin.Context) {
 		c.String(http.StatusOK, "OK")
 	})
