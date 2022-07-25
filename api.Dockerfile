@@ -1,24 +1,32 @@
+# Build environment
+# -----------------
+FROM golang:1.16-alpine as builder
 
-FROM golang:latest as builder
+ENV GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOARCH=amd64
 
 WORKDIR /app
-
-COPY go.mod go.sum ./
-RUN go mod tidy && go mod verify
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
 
 COPY . .
 
-RUN go build -o /usr/local/bin/main .
+RUN go build -o main .
 
-#FROM golang:latest
-#
+
+# ----------------------
+FROM alpine:latest as runner
+
+RUN apk --no-cache add ca-certificates
+
 #WORKDIR /app
-#
-#COPY --from=builder /app/main /app/main
+COPY --from=builder /app/main .
+COPY --from=builder /app/.env ./.env
+COPY --from=builder /app/static ./static/
+COPY --from=builder /app/config/ ./config/
 
-#COPY ./entrypoint.sh /app/entrypoint.sh
-
- # wait-for-it requires bash, which alpine doesn't ship with by default. Use wait-for instead
-#ADD https://raw.githubusercontent.com/eficode/wait-for/v2.1.0/wait-for /usr/local/bin/wait-for
-#RUN chmod +x /usr/local/bin/wait-for /app/entrypoint.sh
-CMD [ "main" ]
+EXPOSE 8080
+CMD ["/main"]

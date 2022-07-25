@@ -17,6 +17,7 @@
 ## Delivery
 - [x] Dockerize 
 - [x] Docker-compose
+- [x] Multi-stage build
 - [x] Deploy
 
 ## Monitoring
