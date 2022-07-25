@@ -19,6 +19,9 @@ type PostService interface {
 	FindByID(ID uint64) entity.Post
 	FindByTopicID(topicID uint64) []entity.Post
 	GetTrendingPosts(pagination pagination.Pagination) []entity.Post
+	//SearchPosts(pagination pagination.Pagination, search string) []entity.Post
+	SearchPosts(search string) []entity.Post
+
 	IsAllowedToEdit(userID string, postID uint64) bool
 }
 
@@ -74,6 +77,16 @@ func (service *postService) FindByTopicID(topicID uint64) []entity.Post {
 
 func (service *postService) GetTrendingPosts(pagination pagination.Pagination) []entity.Post {
 	return service.postRepository.GetTrendingPosts(pagination)
+}
+
+/*
+func (service *postService) SearchPosts(pagination pagination.Pagination, search string) []entity.Post {
+	return service.postRepository.SearchPosts(pagination, search)
+}
+*/
+
+func (service *postService) SearchPosts(search string) []entity.Post {
+	return service.postRepository.SearchPosts(search)
 }
 
 func (service *postService) IsAllowedToEdit(userID string, postID uint64) bool {

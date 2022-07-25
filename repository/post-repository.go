@@ -15,6 +15,8 @@ type PostRepository interface {
 	FindPostByID(postID uint64) entity.Post
 	FindPostByTopicID(topicID uint64) []entity.Post
 	GetTrendingPosts(pagination pagination.Pagination) []entity.Post
+	//SearchPosts(pagination pagination.Pagination, search string) []entity.Post
+	SearchPosts(search string) []entity.Post
 }
 
 type postConnection struct {
@@ -93,5 +95,25 @@ func (db *postConnection) GetTrendingPosts(pagination pagination.Pagination) []e
 		return nil
 	}
 	//db.connection.Preload("User").Find(&posts, "likes_count > ?", 0)
+	return posts
+}
+
+/*
+func (db *postConnection) SearchPosts(pagination pagination.Pagination, search string) []entity.Post {
+	var posts []entity.Post
+	offset := (pagination.Page - 1) * pagination.Limit
+	queryBuilder := db.connection.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	result := queryBuilder.Preload("User").Find(&posts, "title LIKE ?", "%"+search+"%")
+	if result.Error != nil {
+		log.Println(result.Error)
+		return nil
+	}
+	return posts
+}
+*/
+
+func (db *postConnection) SearchPosts(search string) []entity.Post {
+	var posts []entity.Post
+	db.connection.Preload("User").Find(&posts, "title LIKE ?", "%"+search+"%")
 	return posts
 }

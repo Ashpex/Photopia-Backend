@@ -83,6 +83,7 @@ func main() {
 		postRoutes.GET("/trending", postController.GetTrendingPosts)
 		postRoutes.GET("/following/", postController.GetFollowingPosts)
 		postRoutes.GET("/subscribed/", postController.GetPostsFromSubscribedTopic)
+		postRoutes.GET("?search=:search", postController.SearchPosts)
 	}
 	topicRoutes := r.Group("api/topics")
 	{

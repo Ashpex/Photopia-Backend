@@ -25,6 +25,7 @@ type PostController interface {
 	GetTrendingPosts(context *gin.Context)
 	GetFollowingPosts(context *gin.Context)
 	GetPostsFromSubscribedTopic(context *gin.Context)
+	SearchPosts(context *gin.Context)
 	Home(context *gin.Context)
 }
 
@@ -130,32 +131,47 @@ func (c *postController) Insert(context *gin.Context) {
 
 func (c *postController) Update(context *gin.Context) {
 	var postUpdateDTO dto.PostUpdateDTO
-	err := context.ShouldBind(&postUpdateDTO)
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 	if err != nil {
-		res := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
-		context.JSON(http.StatusBadRequest, res)
-		return
+		response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
+		context.JSON(http.StatusBadRequest, response)
+	}
+	var post entity.Post = c.postService.FindByID(id)
+	if (post == entity.Post{}) {
+		res := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
+		context.JSON(http.StatusNotFound, res)
+	} else {
+
+		err := context.ShouldBind(&postUpdateDTO)
+		if err != nil {
+			res := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
+			context.JSON(http.StatusBadRequest, res)
+			return
+		}
+
+		authHeader := context.GetHeader("Authorization")
+		token, err := c.jwtService.ValidateToken(authHeader)
+		if err != nil {
+			fmt.Sprintf("%v", err.Error())
+		}
+		postUpdateDTO.ID = id
+		claims := token.Claims.(jwt.MapClaims)
+		userID := fmt.Sprintf("%v", claims["user_id"])
+		if c.postService.IsAllowedToEdit(userID, postUpdateDTO.ID) {
+			id, errID := strconv.ParseUint(userID, 10, 64)
+			if errID == nil {
+				postUpdateDTO.UserID = id
+			}
+			log.Println(postUpdateDTO)
+			result := c.postService.Update(postUpdateDTO)
+			response := helper.BuildResponse(true, "OK", result)
+			context.JSON(http.StatusOK, response)
+		} else {
+			response := helper.BuildErrorResponse("You dont have permission", "You are not the owner", helper.EmptyObj{})
+			context.JSON(http.StatusForbidden, response)
+		}
 	}
 
-	authHeader := context.GetHeader("Authorization")
-	token, err := c.jwtService.ValidateToken(authHeader)
-	if err != nil {
-		fmt.Sprintf("%v", err.Error())
-	}
-	claims := token.Claims.(jwt.MapClaims)
-	userID := fmt.Sprintf("%v", claims["user_id"])
-	if c.postService.IsAllowedToEdit(userID, postUpdateDTO.ID) {
-		id, errID := strconv.ParseUint(userID, 10, 64)
-		if errID == nil {
-			postUpdateDTO.UserID = id
-		}
-		result := c.postService.Update(postUpdateDTO)
-		response := helper.BuildResponse(true, "OK", result)
-		context.JSON(http.StatusOK, response)
-	} else {
-		response := helper.BuildErrorResponse("You dont have permission", "You are not the owner", helper.EmptyObj{})
-		context.JSON(http.StatusForbidden, response)
-	}
 }
 
 func (c *postController) Delete(context *gin.Context) {
@@ -257,6 +273,24 @@ func (c *postController) GetPostsFromSubscribedTopic(context *gin.Context) {
 		}
 	}
 	response := helper.BuildResponse(true, "Get all subscribed topic posts successfully", subscribedTopicPosts)
+	context.JSON(http.StatusOK, response)
+}
+
+func (c *postController) SearchPosts(context *gin.Context) {
+	//pagination := pagination.GeneratePaginationFromRequest(context)
+	//var posts []entity.Post = c.postService.All(pagination)
+	var searchedPosts []entity.Post
+	var searchTerm string
+	searchTerm = context.Query("search")
+	log.Println(searchTerm)
+
+	//for _, post := range posts {
+	//	if strings.Contains(post.Title, searchTerm) {
+	//		searchedPosts = append(searchedPosts, post)
+	//	}
+	//}
+	searchedPosts = c.postService.SearchPosts(searchTerm)
+	response := helper.BuildResponse(true, "Get all searched posts successfully", searchedPosts)
 	context.JSON(http.StatusOK, response)
 }
 
