@@ -1,9 +1,24 @@
 # Gallery-Backend
 
-Docs:
+## Document
+- [x] Database design
+- [X] API Design
+- [X] Class Diagram 
+- [X] Sequence Diagram
 
-[x] Database diagram
-[x] Class and architecture diagram
-[x] Sequence diagram
-[x] Api design (in progress)
+## Code
+- [x] Database connection
+- [x] HTTP server 
+- [x] ORM
+- [x] API Endpoint
+- [x] Static file server (nginx)
+- [ ] Unit test (75%)
 
+## Delivery
+- [x] Dockerize 
+- [x] Docker-compose
+- [x] Deploy
+
+## Monitoring
+- [x] Prometheus
+- [x] Grafana
