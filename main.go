@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/config"
@@ -13,6 +14,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
@@ -37,7 +39,7 @@ var (
 
 	// Post service and controller
 	postService    service.PostService       = service.NewPostService(postRepository)
-	postController controller.PostController = controller.NewPostController(postService, jwtService, likeService, followerService, subscribeService)
+	postController controller.PostController = controller.NewPostController(postService, jwtService, likeService, followerService, subscribeService, topicService)
 	// Topic service and controller
 	topicService    service.TopicService       = service.NewTopicService(topicRepository)
 	topicController controller.TopicController = controller.NewTopicController(topicService, jwtService)
@@ -61,6 +63,19 @@ func main() {
 	r := gin.Default()
 	prom := ginprometheus.NewPrometheus("gin", newCustomMetrics())
 	prom.Use(r)
+	//r.Use(cors.Default())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin", "Access-Control-Allow-Headers", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "http://localhost:3000"
+		},
+		MaxAge: 12 * time.Hour,
+	}))
+
 	r.Static("/static", "./static")
 	authRoutes := r.Group("api/auth")
 	{
@@ -76,16 +91,18 @@ func main() {
 
 	postRoutes := r.Group("api/posts", middleware.AuthorizeJWT(jwtService))
 	{
-		postRoutes.GET("/", postController.All)
-		postRoutes.POST("/", postController.Insert)
+		postRoutes.GET("/", postController.GetAll, middleware.AuthorizeJWT(jwtService))
+		postRoutes.POST("/", postController.Insert, middleware.AuthorizeJWT(jwtService))
 		postRoutes.GET("/:id", postController.FindByID)
-		postRoutes.PUT("/:id", postController.Update)
-		postRoutes.DELETE("/:id", postController.Delete)
+		postRoutes.PUT("/:id", postController.Update, middleware.AuthorizeJWT(jwtService))
+		postRoutes.DELETE("/:id", postController.Delete, middleware.AuthorizeJWT(jwtService))
 		postRoutes.GET("/topic/:id", postController.FindByTopicID)
+		postRoutes.GET("/:id/topic", postController.GetTopicOfPost)
+
 		//postRoutes.GET("?topic=:id", postController.FindByTopicID)
 		postRoutes.GET("/trending", postController.GetTrendingPosts)
-		postRoutes.GET("/following/", postController.GetFollowingPosts)
-		postRoutes.GET("/subscribed/", postController.GetPostsFromSubscribedTopic)
+		postRoutes.GET("/following/", postController.GetFollowingPosts, middleware.AuthorizeJWT(jwtService))
+		postRoutes.GET("/subscribed/", postController.GetPostsFromSubscribedTopic, middleware.AuthorizeJWT(jwtService))
 		postRoutes.GET("?search=:search", postController.SearchPosts)
 	}
 	topicRoutes := r.Group("api/topics")
@@ -102,6 +119,7 @@ func main() {
 		commentRoutes.PUT("/:id", commentController.Update)
 		commentRoutes.DELETE("/:id", commentController.Delete)
 		commentRoutes.GET("/post/:id", commentController.FindCommentByPostID)
+		commentRoutes.GET("/count/:id", commentController.CountCommentByPostID)
 	}
 
 	followerRoutes := r.Group("api/followers", middleware.AuthorizeJWT(jwtService))

@@ -13,6 +13,7 @@ type CommentRepository interface {
 	AllComment() []entity.Comment
 	FindCommentByID(commentID uint64) entity.Comment
 	FindCommentByPostID(postID uint64) []entity.Comment
+	CountCommentByPostID(postID uint64) int64
 }
 
 type commentConnection struct {
@@ -44,8 +45,7 @@ func (db *commentConnection) InsertComment(comment entity.Comment) entity.Commen
 
 func (db *commentConnection) UpdateComment(comment entity.Comment) entity.Comment {
 	db.connection.Save(&comment)
-	db.connection.Preload("User").Find(&comment)
-	db.connection.Preload("Post").Find(&comment)
+	db.connection.Preload("User").Preload("Post").Find(&comment)
 	return comment
 }
 
@@ -82,4 +82,10 @@ func (db *commentConnection) FindCommentByPostID(postID uint64) []entity.Comment
 		log.Println(err)
 	}
 	return comments
+}
+
+func (db *commentConnection) CountCommentByPostID(postID uint64) int64 {
+	var count int64
+	db.connection.Model(&entity.Comment{}).Where("post_id = ?", postID).Count(&count)
+	return count
 }

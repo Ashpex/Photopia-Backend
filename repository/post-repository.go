@@ -12,6 +12,7 @@ type PostRepository interface {
 	UpdatePost(post entity.Post) entity.Post
 	DeletePost(post entity.Post)
 	AllPost(pagination pagination.Pagination) []entity.Post
+	GetAll() []entity.Post
 	FindPostByID(postID uint64) entity.Post
 	FindPostByTopicID(topicID uint64) []entity.Post
 	GetTrendingPosts(pagination pagination.Pagination) []entity.Post
@@ -35,10 +36,7 @@ func (db *postConnection) InsertPost(post entity.Post) entity.Post {
 	if err != nil {
 		log.Println(err)
 	}
-	db.connection.Preload("User").Find(&post)
-	db.connection.Preload("Topic").Find(&post)
-	db.connection.Preload("Comments").Find(&post)
-	db.connection.Preload("Likes").Find(&post)
+	db.connection.Preload("User").Preload("Topic").Preload("Comments").Preload("Likes").Find(&post)
 	return post
 }
 
@@ -47,9 +45,7 @@ func (db *postConnection) UpdatePost(post entity.Post) entity.Post {
 	if err != nil {
 		log.Println(err)
 	}
-	db.connection.Preload("User").Find(&post)
-	db.connection.Preload("Topic").Find(&post)
-	db.connection.Preload("Comments").Find(&post)
+	db.connection.Preload("User").Preload("Topic").Preload("Comments").Find(&post)
 	return post
 }
 
@@ -63,7 +59,7 @@ func (db *postConnection) DeletePost(post entity.Post) {
 
 func (db *postConnection) FindPostByID(postID uint64) entity.Post {
 	var post entity.Post
-	db.connection.Preload("User").Find(&post, postID)
+	db.connection.Preload("User").Preload("Topic").Preload("Comments").Find(&post, postID)
 	return post
 }
 
@@ -79,9 +75,15 @@ func (db *postConnection) AllPost(pagination pagination.Pagination) []entity.Pos
 	return posts
 }
 
+func (db *postConnection) GetAll() []entity.Post {
+	var posts []entity.Post
+	db.connection.Preload("User").Preload("Topic").Preload("Comments").Find(&posts)
+	return posts
+}
+
 func (db *postConnection) FindPostByTopicID(topicID uint64) []entity.Post {
 	var posts []entity.Post
-	db.connection.Preload("User").Find(&posts, "topic_id = ?", topicID)
+	db.connection.Preload("User").Preload("Topic").Preload("Comments").Find(&posts, "topic_id = ?", topicID)
 	return posts
 }
 
@@ -114,6 +116,6 @@ func (db *postConnection) SearchPosts(pagination pagination.Pagination, search s
 
 func (db *postConnection) SearchPosts(search string) []entity.Post {
 	var posts []entity.Post
-	db.connection.Preload("User").Find(&posts, "title LIKE ?", "%"+search+"%")
+	db.connection.Preload("User").Find(&posts, "title LIKE ?", search+"%")
 	return posts
 }

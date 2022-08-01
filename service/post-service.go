@@ -16,6 +16,7 @@ type PostService interface {
 	Update(post dto.PostUpdateDTO) entity.Post
 	Delete(post entity.Post)
 	All(pagination pagination.Pagination) []entity.Post
+	GetAll() []entity.Post
 	FindByID(ID uint64) entity.Post
 	FindByTopicID(topicID uint64) []entity.Post
 	GetTrendingPosts(pagination pagination.Pagination) []entity.Post
@@ -65,6 +66,10 @@ func (service *postService) Delete(post entity.Post) {
 
 func (service *postService) All(pagination pagination.Pagination) []entity.Post {
 	return service.postRepository.AllPost(pagination)
+}
+
+func (service *postService) GetAll() []entity.Post {
+	return service.postRepository.GetAll()
 }
 
 func (service *postService) FindByID(ID uint64) entity.Post {

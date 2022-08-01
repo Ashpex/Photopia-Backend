@@ -28,14 +28,13 @@ func (db *followerConnection) Follow(follower entity.Follower) entity.Follower {
 	if err != nil {
 		log.Println(err)
 	}
-	db.connection.Preload("User").Find(&follower)
-	db.connection.Preload("Followers").Find(&follower)
+	db.connection.Preload("User").Preload("Followers").Find(&follower)
 	return follower
 }
 
 func (db *followerConnection) Unfollow(follower entity.Follower) {
 	db.connection.Where("user_id = ? AND follower_id = ?", follower.UserID, follower.FollowerID).Delete(&follower)
-	db.connection.Preload("User").Find(&follower)
+	db.connection.Preload("User").Preload("Followers").Find(&follower)
 }
 
 func (db *followerConnection) AllFollower(userID uint64) []entity.Follower {

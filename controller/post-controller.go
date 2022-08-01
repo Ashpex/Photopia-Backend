@@ -17,6 +17,7 @@ import (
 // PostController is a contract about something that this controller can do
 type PostController interface {
 	All(context *gin.Context)
+	GetAll(context *gin.Context)
 	FindByID(context *gin.Context)
 	FindByTopicID(context *gin.Context)
 	Insert(context *gin.Context)
@@ -25,6 +26,7 @@ type PostController interface {
 	GetTrendingPosts(context *gin.Context)
 	GetFollowingPosts(context *gin.Context)
 	GetPostsFromSubscribedTopic(context *gin.Context)
+	GetTopicOfPost(context *gin.Context)
 	SearchPosts(context *gin.Context)
 	Home(context *gin.Context)
 }
@@ -34,11 +36,12 @@ type postController struct {
 	likeService      service.LikeService
 	followService    service.FollowService
 	subscribeService service.SubscribeService
+	topicService     service.TopicService
 	jwtService       helper.JWTService
 }
 
 //NewPostController create a new instances of PostController
-func NewPostController(postServ service.PostService, jwtServ helper.JWTService, likeServ service.LikeService, followerServ service.FollowService, subscribeServ service.SubscribeService) PostController {
+func NewPostController(postServ service.PostService, jwtServ helper.JWTService, likeServ service.LikeService, followerServ service.FollowService, subscribeServ service.SubscribeService, topicServ service.TopicService) PostController {
 	return &postController{
 		postService:      postServ,
 		likeService:      likeServ,
@@ -46,6 +49,12 @@ func NewPostController(postServ service.PostService, jwtServ helper.JWTService, 
 		subscribeService: subscribeServ,
 		jwtService:       jwtServ,
 	}
+}
+
+func (c *postController) GetAll(context *gin.Context) {
+	var posts []entity.Post = c.postService.GetAll()
+	response := helper.BuildResponse(true, "Get all posts successfully", posts)
+	context.JSON(http.StatusOK, response)
 }
 
 func (c *postController) All(context *gin.Context) {
@@ -209,8 +218,7 @@ func (c *postController) getUserIDByToken(token string) string {
 	return id
 }
 func (c *postController) GetTrendingPosts(context *gin.Context) {
-	pagination := pagination.GeneratePaginationFromRequest(context)
-	var posts []entity.Post = c.postService.All(pagination)
+	var posts []entity.Post = c.postService.GetAll()
 	var trendingPosts []entity.Post
 	for _, post := range posts {
 		post.LikesCount = c.likeService.CountLike(post.ID)
@@ -223,8 +231,7 @@ func (c *postController) GetTrendingPosts(context *gin.Context) {
 }
 
 func (c *postController) GetFollowingPosts(context *gin.Context) {
-	pagination := pagination.GeneratePaginationFromRequest(context)
-	var posts []entity.Post = c.postService.All(pagination)
+	var posts []entity.Post = c.postService.GetAll()
 	var followingPosts []entity.Post
 	authHeader := context.GetHeader("Authorization")
 	token, err := c.jwtService.ValidateToken(authHeader)
@@ -250,19 +257,20 @@ func (c *postController) GetFollowingPosts(context *gin.Context) {
 }
 
 func (c *postController) GetPostsFromSubscribedTopic(context *gin.Context) {
-	pagination := pagination.GeneratePaginationFromRequest(context)
-	var posts []entity.Post = c.postService.All(pagination)
+	var posts []entity.Post = c.postService.GetAll()
 	var subscribedTopicPosts []entity.Post
 	authHeader := context.GetHeader("Authorization")
 	token, err := c.jwtService.ValidateToken(authHeader)
 	if err != nil {
 		fmt.Sprintf("%v", err.Error())
+		return
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	UserID := fmt.Sprintf("%v", claims["user_id"])
 	UserIDInt, err := strconv.ParseUint(UserID, 10, 64)
 	if err != nil {
 		fmt.Sprintf("%v", err.Error())
+		return
 	}
 	var subscribedTopics []entity.Subscribe = c.subscribeService.AllSubscribesByUser(UserIDInt)
 	for _, subscribedTopic := range subscribedTopics {
@@ -292,6 +300,25 @@ func (c *postController) SearchPosts(context *gin.Context) {
 	searchedPosts = c.postService.SearchPosts(searchTerm)
 	response := helper.BuildResponse(true, "Get all searched posts successfully", searchedPosts)
 	context.JSON(http.StatusOK, response)
+}
+
+func (c *postController) GetTopicOfPost(context *gin.Context) {
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
+	if err != nil {
+		response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
+		context.JSON(http.StatusBadRequest, response)
+	}
+	var post entity.Post = c.postService.FindByID(id)
+	if (post == entity.Post{}) {
+		res := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
+		context.JSON(http.StatusNotFound, res)
+	} else {
+		var topic entity.Topic = c.topicService.FindByID(post.TopicID)
+		topic = c.topicService.FindByID(post.TopicID)
+		response := helper.BuildResponse(true, "Get topic of post successfully", topic)
+		context.JSON(http.StatusOK, response)
+	}
+
 }
 
 func (c *postController) Home(context *gin.Context) {

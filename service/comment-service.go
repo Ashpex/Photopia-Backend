@@ -16,6 +16,7 @@ type CommentService interface {
 	All() []entity.Comment
 	FindByID(commentID uint64) entity.Comment
 	FindCommentByPostID(postID uint64) []entity.Comment
+	CountCommentByPostID(postID uint64) int64
 	IsAllowedToEdit(userID string, commentId uint64) bool
 }
 
@@ -69,6 +70,11 @@ func (service *commentService) FindByID(commentID uint64) entity.Comment {
 func (service *commentService) FindCommentByPostID(postID uint64) []entity.Comment {
 	return service.commentRepository.FindCommentByPostID(postID)
 }
+
+func (service *commentService) CountCommentByPostID(postID uint64) int64 {
+	return service.commentRepository.CountCommentByPostID(postID)
+}
+
 func (service *commentService) IsAllowedToEdit(userID string, commentId uint64) bool {
 	post := service.commentRepository.FindCommentByID(commentId)
 	id := fmt.Sprintf("%v", post.UserID)

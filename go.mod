@@ -3,6 +3,7 @@ module gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery
 go 1.16
 
 require (
+	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/gin-gonic/gin v1.8.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/joho/godotenv v1.4.0

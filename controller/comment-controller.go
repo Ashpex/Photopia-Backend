@@ -16,6 +16,7 @@ type CommentController interface {
 	All(context *gin.Context)
 	FindByID(context *gin.Context)
 	FindCommentByPostID(context *gin.Context)
+	CountCommentByPostID(context *gin.Context)
 	Insert(context *gin.Context)
 	Update(context *gin.Context)
 	Delete(context *gin.Context)
@@ -58,7 +59,7 @@ func (c *commentController) FindByID(context *gin.Context) {
 }
 
 func (c *commentController) FindCommentByPostID(context *gin.Context) {
-	id, err := strconv.ParseUint(context.Param("post_id"), 0, 0)
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
 	if err != nil {
 		response := helper.BuildErrorResponse("No param id was found", err.Error(), helper.EmptyObj{})
 		context.AbortWithStatusJSON(http.StatusBadRequest, response)
@@ -163,6 +164,17 @@ func (c *commentController) Delete(context *gin.Context) {
 		response := helper.BuildErrorResponse("You dont have permission", "You are not the owner", helper.EmptyObj{})
 		context.JSON(http.StatusForbidden, response)
 	}
+}
+
+func (c *commentController) CountCommentByPostID(context *gin.Context) {
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
+	if err != nil {
+		response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
+		context.JSON(http.StatusBadRequest, response)
+	}
+	count := c.commentService.CountCommentByPostID(id)
+	response := helper.BuildResponse(true, "Count comment successfully", count)
+	context.JSON(http.StatusOK, response)
 }
 
 func (c *commentController) getUserIDByToken(token string) string {
