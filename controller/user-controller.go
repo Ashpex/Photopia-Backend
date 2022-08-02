@@ -15,6 +15,7 @@ import (
 type UserController interface {
 	Update(context *gin.Context)
 	Profile(context *gin.Context)
+	ProfileUserByID(context *gin.Context)
 }
 
 type userController struct {
@@ -67,4 +68,11 @@ func (uc *userController) Profile(context *gin.Context) {
 	response := helper.BuildResponse(true, "Get profile user successfully", user)
 	context.JSON(http.StatusOK, response)
 
+}
+
+func (uc *userController) ProfileUserByID(context *gin.Context) {
+	id := context.Param("id")
+	user := uc.userService.Profile(id)
+	response := helper.BuildResponse(true, "Get profile user successfully", user)
+	context.JSON(http.StatusOK, response)
 }

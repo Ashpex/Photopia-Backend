@@ -77,7 +77,7 @@ func (db *commentConnection) FindCommentByID(commentID uint64) entity.Comment {
 func (db *commentConnection) FindCommentByPostID(postID uint64) []entity.Comment {
 	var comments []entity.Comment
 	//db.connection.Preload("Post").Find(&comments, "post_id = ?", postID)
-	err := db.connection.Where("post_id = ?", postID).Find(&comments)
+	err := db.connection.Where("post_id = ?", postID).Preload("User").Preload("Post").Find(&comments)
 	if err != nil {
 		log.Println(err)
 	}

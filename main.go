@@ -87,6 +87,7 @@ func main() {
 	{
 		userRoutes.GET("/profile", userController.Profile)
 		userRoutes.PUT("/profile", userController.Update)
+		userRoutes.GET("/:id", userController.ProfileUserByID)
 	}
 
 	postRoutes := r.Group("api/posts", middleware.AuthorizeJWT(jwtService))
@@ -104,6 +105,7 @@ func main() {
 		postRoutes.GET("/following/", postController.GetFollowingPosts, middleware.AuthorizeJWT(jwtService))
 		postRoutes.GET("/subscribed/", postController.GetPostsFromSubscribedTopic, middleware.AuthorizeJWT(jwtService))
 		postRoutes.GET("?search=:search", postController.SearchPosts)
+
 	}
 	topicRoutes := r.Group("api/topics")
 	{
