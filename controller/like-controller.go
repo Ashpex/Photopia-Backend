@@ -17,6 +17,7 @@ type LikeController interface {
 	UnLike(context *gin.Context)
 	AllLikes(context *gin.Context)
 	CountLikes(context *gin.Context)
+	IsLiked(context *gin.Context)
 }
 
 type likeController struct {
@@ -117,4 +118,36 @@ func (controller *likeController) getUserIDByToken(token string) string {
 	claims := aToken.Claims.(jwt.MapClaims)
 	id := fmt.Sprintf("%v", claims["user_id"])
 	return id
+}
+
+func (controller *likeController) IsLiked(context *gin.Context) {
+	var like entity.Like
+
+	id, err := strconv.ParseUint(context.Param("id"), 0, 0)
+	if err != nil {
+		response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
+		context.JSON(http.StatusBadRequest, response)
+	} else {
+		like.PostID = id
+		authHeader := context.GetHeader("Authorization")
+		userID := controller.getUserIDByToken(authHeader)
+		convertedUserID, err := strconv.ParseUint(userID, 10, 64)
+		if err == nil {
+			like.UserID = convertedUserID
+			isLiked := controller.likeService.IsLiked(like.UserID, like.PostID)
+			if isLiked {
+				response := helper.BuildResponse(true, "User liked this post", isLiked)
+				context.JSON(http.StatusOK, response)
+			} else {
+				response := helper.BuildResponse(true, "User don't like this post", isLiked)
+				context.JSON(http.StatusOK, response)
+			}
+		}
+		if err != nil {
+			fmt.Sprintf("%v", err.Error())
+			response := helper.BuildErrorResponse("Failed to get the id", "No param id were found", helper.EmptyObj{})
+			context.JSON(http.StatusBadRequest, response)
+		}
+	}
+
 }

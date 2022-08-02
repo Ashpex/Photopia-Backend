@@ -12,6 +12,7 @@ type SubscribeRepository interface {
 	AllSubscribes(topicID uint64) []entity.Subscribe
 	CountSubscribes(topicID uint64) int
 	AllSubscribesByUser(userID uint64) []entity.Subscribe
+	IsSubscribed(topicID uint64, userID uint64) bool
 }
 
 type subscribeConnection struct {
@@ -58,4 +59,10 @@ func (db *subscribeConnection) AllSubscribesByUser(userID uint64) []entity.Subsc
 	var subscribes []entity.Subscribe
 	db.connection.Preload("Topic").Find(&subscribes, "user_id = ?", userID)
 	return subscribes
+}
+
+func (db *subscribeConnection) IsSubscribed(topicID uint64, userID uint64) bool {
+	var subscribe entity.Subscribe
+	db.connection.Preload("User").Find(&subscribe, "topic_id = ? AND user_id = ?", topicID, userID)
+	return subscribe.ID != 0
 }

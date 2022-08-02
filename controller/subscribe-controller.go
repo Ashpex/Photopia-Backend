@@ -17,6 +17,7 @@ type SubscribeController interface {
 	Unsubscribe(context *gin.Context)
 	AllSubscribes(context *gin.Context)
 	CountSubscribes(context *gin.Context)
+	IsSubscribed(context *gin.Context)
 }
 
 type subscribeController struct {
@@ -137,4 +138,42 @@ func (c *subscribeController) CountSubscribes(context *gin.Context) {
 		context.JSON(http.StatusOK, res)
 	}
 
+}
+
+func (c *subscribeController) IsSubscribed(context *gin.Context) {
+	var subscribe entity.Subscribe
+	topicId, err := strconv.ParseUint(context.Param("id"), 0, 0)
+	if err != nil {
+		response := helper.BuildErrorResponse("Failed to get the id", "No param topic_id were found", helper.EmptyObj{})
+		context.JSON(http.StatusBadRequest, response)
+	}
+	var topic entity.Topic = c.topicService.FindByID(topicId)
+	if (topic == entity.Topic{}) {
+		res := helper.BuildErrorResponse("Data not found", "No data with given id", helper.EmptyObj{})
+		context.JSON(http.StatusNotFound, res)
+	} else {
+		authHeader := context.GetHeader("Authorization")
+		token, err := c.jwtService.ValidateToken(authHeader)
+		if err != nil {
+			fmt.Sprintf("%v", err.Error())
+		}
+		claims := token.Claims.(jwt.MapClaims)
+		userID := fmt.Sprintf("%v", claims["user_id"])
+		id, errID := strconv.ParseUint(userID, 10, 64)
+		if errID == nil {
+			subscribe.UserID = id
+			subscribe.TopicID = topicId
+			result := c.subscribeService.IsSubscribed(subscribe.UserID, subscribe.TopicID)
+			if result {
+				res := helper.BuildResponse(true, "User is subscribed", result)
+				context.JSON(http.StatusOK, res)
+			} else {
+				res := helper.BuildResponse(true, "User is not subscribed", result)
+				context.JSON(http.StatusOK, res)
+			}
+		} else {
+			res := helper.BuildErrorResponse("Failed to get the id", "No param user_id were found", helper.EmptyObj{})
+			context.JSON(http.StatusBadRequest, res)
+		}
+	}
 }

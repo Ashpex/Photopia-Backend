@@ -14,6 +14,7 @@ type SubscribeService interface {
 	AllSubscribes(topicID uint64) []entity.Subscribe
 	CountSubscribes(topicID uint64) int
 	AllSubscribesByUser(userID uint64) []entity.Subscribe
+	IsSubscribed(userID uint64, topicID uint64) bool
 }
 
 type subscribeService struct {
@@ -55,4 +56,8 @@ func (service *subscribeService) CountSubscribes(topicID uint64) int {
 
 func (service *subscribeService) AllSubscribesByUser(userID uint64) []entity.Subscribe {
 	return service.subscribeRepository.AllSubscribesByUser(userID)
+}
+
+func (service *subscribeService) IsSubscribed(userID uint64, topicID uint64) bool {
+	return service.subscribeRepository.IsSubscribed(userID, topicID)
 }

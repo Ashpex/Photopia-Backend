@@ -13,6 +13,7 @@ type LikeService interface {
 	Unlike(like entity.Like)
 	AllLike(postID uint64) []entity.Like
 	CountLike(postID uint64) int
+	IsLiked(userID uint64, postID uint64) bool
 }
 
 type likeService struct {
@@ -50,4 +51,8 @@ func (service *likeService) AllLike(postID uint64) []entity.Like {
 
 func (service *likeService) CountLike(postID uint64) int {
 	return service.likeRepository.CountLikes(postID)
+}
+
+func (service *likeService) IsLiked(userID uint64, postID uint64) bool {
+	return service.likeRepository.IsLiked(userID, postID)
 }

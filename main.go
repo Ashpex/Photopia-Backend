@@ -136,6 +136,7 @@ func main() {
 		likeRoutes.POST("/", likeController.Like)
 		likeRoutes.DELETE("/:id", likeController.UnLike)
 		likeRoutes.GET("/count/:id", likeController.CountLikes)
+		likeRoutes.GET("/is_liked/:id", likeController.IsLiked)
 	}
 	subscribeRoutes := r.Group("api/subscribes", middleware.AuthorizeJWT(jwtService))
 	{
@@ -143,6 +144,7 @@ func main() {
 		subscribeRoutes.POST("/:id", subscribeController.Subscribe)
 		subscribeRoutes.DELETE("/:id", subscribeController.Unsubscribe)
 		subscribeRoutes.GET("/count/:id", subscribeController.CountSubscribes)
+		subscribeRoutes.GET("/is_subscribed/:id", subscribeController.IsSubscribed)
 	}
 
 	r.GET("/test", func(c *gin.Context) {
