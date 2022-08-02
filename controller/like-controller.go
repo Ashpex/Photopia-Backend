@@ -8,6 +8,7 @@ import (
 	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/entity"
 	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/helper"
 	"gitlab.zalopay.vn/top/intern/vybnt/gallery-backend/gallery/service"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -135,6 +136,9 @@ func (controller *likeController) IsLiked(context *gin.Context) {
 		if err == nil {
 			like.UserID = convertedUserID
 			isLiked := controller.likeService.IsLiked(like.UserID, like.PostID)
+			log.Println(isLiked)
+			log.Println(like.UserID)
+			log.Println(like.PostID)
 			if isLiked {
 				response := helper.BuildResponse(true, "User liked this post", isLiked)
 				context.JSON(http.StatusOK, response)

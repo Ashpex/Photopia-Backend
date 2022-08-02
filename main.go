@@ -128,6 +128,7 @@ func main() {
 		followerRoutes.GET("/following/:id", followerController.AllFollowing)
 		followerRoutes.POST("/", followerController.Follow)
 		followerRoutes.DELETE("/:id", followerController.Unfollow)
+		followerRoutes.GET("/is_following/:id", followerController.IsFollowing)
 	}
 
 	likeRoutes := r.Group("api/likes", middleware.AuthorizeJWT(jwtService))

@@ -13,6 +13,7 @@ type FollowService interface {
 	UnFollow(follower entity.Follower)
 	AllFollowers(userID uint64) []entity.Follower
 	AllFollowing(userID uint64) []entity.Follower
+	IsFollowing(userID uint64, followerID uint64) bool
 }
 
 type followerService struct {
@@ -49,4 +50,8 @@ func (service *followerService) AllFollowers(userID uint64) []entity.Follower {
 // AllFollowing is a function that will return all users that a user is following
 func (service *followerService) AllFollowing(userID uint64) []entity.Follower {
 	return service.followerRepository.AllFollowing(userID)
+}
+
+func (service *followerService) IsFollowing(userID uint64, followerID uint64) bool {
+	return service.followerRepository.IsFollowing(userID, followerID)
 }

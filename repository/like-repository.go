@@ -61,9 +61,7 @@ func (db *likeConnection) CountLikes(postID uint64) int {
 
 func (db *likeConnection) IsLiked(userID uint64, postID uint64) bool {
 	var like entity.Like
-	err := db.connection.Where("post_id = ? AND user_id = ?", postID, userID).Find(&like).Error
-	if err != nil {
-		return false
-	}
-	return true
+	db.connection.Preload("User").Find(&like, "user_id = ? AND post_id = ?", userID, postID)
+	return like.ID != 0
+
 }

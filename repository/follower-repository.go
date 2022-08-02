@@ -11,6 +11,7 @@ type FollowerRepository interface {
 	Unfollow(follower entity.Follower)
 	AllFollower(userID uint64) []entity.Follower
 	AllFollowing(userID uint64) []entity.Follower
+	IsFollowing(userID uint64, followerID uint64) bool
 }
 
 type followerConnection struct {
@@ -47,4 +48,10 @@ func (db *followerConnection) AllFollowing(userID uint64) []entity.Follower {
 	var followers []entity.Follower
 	db.connection.Preload("User").Find(&followers, "follower_id = ?", userID)
 	return followers
+}
+
+func (db *followerConnection) IsFollowing(userID uint64, followerID uint64) bool {
+	var follower entity.Follower
+	db.connection.Where("user_id = ? AND follower_id = ?", userID, followerID).Find(&follower)
+	return follower.ID != 0
 }
