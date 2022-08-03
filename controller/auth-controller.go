@@ -15,6 +15,7 @@ import (
 type AuthController interface {
 	Login(ctx *gin.Context)
 	Register(ctx *gin.Context)
+	ValidateToken(ctx *gin.Context)
 }
 
 type authController struct {
@@ -69,4 +70,21 @@ func (c *authController) Register(ctx *gin.Context) {
 		response := helper.BuildResponse(true, "OK!", createdUser)
 		ctx.JSON(http.StatusCreated, response)
 	}
+}
+
+func (c *authController) ValidateToken(ctx *gin.Context) {
+	token := ctx.GetHeader("Authorization")
+	if token == "" {
+		response := helper.BuildErrorResponse("Failed to process request", "Token is required", helper.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+		return
+	}
+	_, err := c.jwtService.ValidateToken(token)
+	if err != nil {
+		response := helper.BuildErrorResponse("Invalid token", err.Error(), helper.EmptyObj{})
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+		return
+	}
+	response := helper.BuildResponse(true, "Valid token!", helper.EmptyObj{})
+	ctx.JSON(http.StatusOK, response)
 }

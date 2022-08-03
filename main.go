@@ -81,6 +81,7 @@ func main() {
 	{
 		authRoutes.POST("/login", authController.Login)
 		authRoutes.POST("/register", authController.Register)
+		authRoutes.GET("/validate", authController.ValidateToken)
 	}
 
 	userRoutes := r.Group("api/user", middleware.AuthorizeJWT(jwtService))
@@ -90,7 +91,7 @@ func main() {
 		userRoutes.GET("/:id", userController.ProfileUserByID)
 	}
 
-	postRoutes := r.Group("api/posts", middleware.AuthorizeJWT(jwtService))
+	postRoutes := r.Group("api/posts")
 	{
 		postRoutes.GET("/", postController.GetAll, middleware.AuthorizeJWT(jwtService))
 		postRoutes.POST("/", postController.Insert, middleware.AuthorizeJWT(jwtService))
@@ -113,20 +114,20 @@ func main() {
 		topicRoutes.POST("/", topicController.Insert)
 		topicRoutes.GET("/:id", topicController.FindByID)
 	}
-	commentRoutes := r.Group("api/comments", middleware.AuthorizeJWT(jwtService))
+	commentRoutes := r.Group("api/comments")
 	{
 		commentRoutes.GET("/", commentController.All)
-		commentRoutes.POST("/:post_id", commentController.Insert)
+		commentRoutes.POST("/:post_id", commentController.Insert, middleware.AuthorizeJWT(jwtService))
 		commentRoutes.GET("/:id", commentController.FindByID)
-		commentRoutes.PUT("/:id", commentController.Update)
-		commentRoutes.DELETE("/:id", commentController.Delete)
+		commentRoutes.PUT("/:id", commentController.Update, middleware.AuthorizeJWT(jwtService))
+		commentRoutes.DELETE("/:id", commentController.Delete, middleware.AuthorizeJWT(jwtService))
 		commentRoutes.GET("/post/:id", commentController.FindCommentByPostID)
 		commentRoutes.GET("/count/:id", commentController.CountCommentByPostID)
 	}
 
 	followerRoutes := r.Group("api/followers", middleware.AuthorizeJWT(jwtService))
 	{
-		followerRoutes.GET("/", followerController.AllFollowers)
+		followerRoutes.GET("/:user_id", followerController.AllFollowers)
 		followerRoutes.GET("/following/:id", followerController.AllFollowing)
 		followerRoutes.POST("/", followerController.Follow)
 		followerRoutes.DELETE("/:id", followerController.Unfollow)
